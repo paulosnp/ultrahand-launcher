@@ -1,0 +1,43 @@
+﻿name: Launcher
+
+# Builds Ultrahand Launcher on every push (artifact UltrahandLauncher-win-x64). A tag launcher-vX.Y.Z also publishes a release with
+# UltrahandLauncher.exe attached, versioned X.Y.Z: installed launchers find it and offer the update (LauncherUpdate.cs).
+on:
+  push:
+    branches: ["**"]
+    tags:
+      - "launcher-v*"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Publish
+        shell: bash
+        run: |
+          version_arg=""
+          if [[ "$GITHUB_REF" == refs/tags/launcher-v* ]]; then
+            version_arg="-p:Version=${GITHUB_REF#refs/tags/launcher-v}"
+          fi
+          dotnet publish UltrahandLauncher/UltrahandLauncher.csproj -c Release -o dist/UltrahandLauncher $version_arg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: UltrahandLauncher-win-x64
+          path: dist/UltrahandLauncher
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/launcher-v')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/UltrahandLauncher/UltrahandLauncher.exe \
+            --title "Ultrahand Launcher ${GITHUB_REF_NAME#launcher-v}" --generate-notes
