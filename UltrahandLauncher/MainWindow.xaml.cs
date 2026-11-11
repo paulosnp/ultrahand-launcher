@@ -118,6 +118,13 @@ public partial class MainWindow : Window
         ApplySettings();
         latestTask = CheckLatest();
         CheckLauncher();
+        if (LauncherUpdate.CanApply && !settings.LauncherShortcuts)
+        {
+            // (the first run of the installed copy: shortcuts to the launcher, or to the game folder it already knows)
+            Shortcuts.Make(Installed.Has(settings.Dest) ? settings.Dest : null, settings.DesktopShortcut, settings.StartShortcut);
+            settings.LauncherShortcuts = true;
+            settings.Save();
+        }
         if (Arg("--rebuild") is { } rebuild)
         {
             SplashText.Text = "Rebuilding for your mods…";

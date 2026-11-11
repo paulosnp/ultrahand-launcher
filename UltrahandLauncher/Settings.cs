@@ -19,6 +19,8 @@ sealed class Settings
     public bool Dlss { get; set; } = true;
     public bool DesktopShortcut { get; set; } = true;
     public bool StartShortcut { get; set; } = true;
+    /// The launcher's own shortcuts were written once (the first run of the installed copy); a shortcut the player deleted stays deleted
+    public bool LauncherShortcuts { get; set; }
     /// owner/repo the releases come from (TOTK_LAUNCHER_REPO takes precedence)
     public string? Repo { get; set; }
 

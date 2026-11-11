@@ -3,22 +3,24 @@ using System.Runtime.InteropServices;
 
 namespace Ultrahand;
 
-/// The "TotK Recomp" shortcuts on the Desktop and in the Start menu. They open this launcher with --launch and the game folder, so
-/// Play also offers Update when a new release is out. The .lnk files are written through the WScript.Shell COM object.
+/// The "Ultrahand Launcher" shortcuts on the Desktop and in the Start menu. The launcher writes them the first time it runs
+/// installed (no arguments: the last installed folder, else the install page) and again after each install of the game, with
+/// --launch and the game folder, so Play also offers Update when a new release is out. The .lnk files are written through the
+/// WScript.Shell COM object.
 static class Shortcuts
 {
-    const string FileName = "TotK Recomp.lnk";
+    const string FileName = "Ultrahand Launcher.lnk";
 
     /// The last shortcut that could not be written, for the log
     public static string? Error;
 
-    public static void Make(string gameFolder, bool desktop, bool startMenu)
+    /// gameFolder null: a shortcut to the launcher itself, before any game install
+    public static void Make(string? gameFolder, bool desktop, bool startMenu)
     {
         var launcher = Environment.ProcessPath;
         if (launcher == null) return;
-        var folder = gameFolder.TrimEnd('\\', '/');
-        var game = Installed.GameExe(folder);
-        var icon = File.Exists(game) ? game : launcher;
+        var folder = gameFolder?.TrimEnd('\\', '/');
+        var arguments = folder != null ? $"--launch \"{folder}\"" : "";
         Write(Environment.SpecialFolder.DesktopDirectory, desktop);
         Write(Environment.SpecialFolder.Programs, startMenu);
 
@@ -38,10 +40,10 @@ static class Shortcuts
                 link = ((dynamic)shell!).CreateShortcut(path);
                 dynamic l = link!;
                 l.TargetPath = launcher;
-                l.Arguments = $"--launch \"{folder}\"";
+                l.Arguments = arguments;
                 l.WorkingDirectory = Path.GetDirectoryName(launcher);
-                l.IconLocation = icon + ",0";
-                l.Description = "The Legend of Zelda: Tears of the Kingdom (TotK Recomp)";
+                l.IconLocation = launcher + ",0";
+                l.Description = "Ultrahand Launcher: install, update and play TotK Recomp";
                 l.Save();
             }
             catch (Exception e)

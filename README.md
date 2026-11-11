@@ -7,7 +7,7 @@ Download it, open it, pick your game files: it installs the game, keeps it up to
   `%LOCALAPPDATA%\Programs\Ultrahand Launcher\UltrahandLauncher.exe` and restarts from there, without admin rights.
 - **Installs the game** from your files (base game, update, `prod.keys`, optional firmware) by running TotK Recomp's own installer
   (`python -m installer`) from its setup package, downloaded from the TotK Recomp releases.
-- **Launches the game** from the Desktop and Start menu shortcuts it creates.
+- **Launches the game** from the Desktop and Start menu shortcuts it creates on its first run.
 - **Updates the game** when TotK Recomp publishes a release: it keeps `romfs/`, `exefs/`, `profile/` (saves) and `totk.ini` and
   redoes only what changed.
 - **Updates itself** when this repository publishes a launcher release.
@@ -32,7 +32,7 @@ restarts. The game is not touched.
    open it. It installs itself and reopens; the downloaded file can then be deleted.
 2. Pick the game files, the install folder and the language, and click **Install the game**. The setup package (several hundred MB)
    is downloaded to `%LOCALAPPDATA%\TotK Recomp\setups\<tag>`.
-3. Afterwards, open the game from the **TotK Recomp** shortcut.
+3. The **Ultrahand Launcher** shortcut on the Desktop and in the Start menu (written on the first run) opens the game folder.
 
 Command line:
 
