@@ -11,6 +11,8 @@ Download it, open it, pick your game files: it installs the game, keeps it up to
 - **Updates the game** when TotK Recomp publishes a release: it keeps `romfs/`, `exefs/`, `profile/` (saves) and `totk.ini` and
   redoes only what changed.
 - **Updates itself** when this repository publishes a launcher release.
+- **Game settings** behind the gear: the Screen, Game, Sound, Controls and Menu settings of the game's own menu (Esc / F1), written
+  to the game's `totk.ini` the way the game writes it.
 - **Rebuilds for code mods**: it writes `build-cache\rebuild.txt` pointing to itself, so `totk.exe` opens the launcher when a mod
   needs new code.
 

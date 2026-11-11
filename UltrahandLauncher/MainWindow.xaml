@@ -47,6 +47,7 @@
       <StackPanel Orientation="Horizontal" Margin="22,0,0,0" VerticalAlignment="Center">
         <Image Source="pack://application:,,,/Images/ultrahand.png" Width="24" RenderOptions.BitmapScalingMode="HighQuality"/>
         <TextBlock Text="Ultrahand" FontSize="14" FontWeight="SemiBold" Margin="10,0,0,0" VerticalAlignment="Center"/>
+        <TextBlock x:Name="LauncherVersionText" FontSize="12" Foreground="{StaticResource TextMuted}" Margin="8,1,0,0" VerticalAlignment="Center"/>
         <Border x:Name="VersionTag" Margin="14,0,0,0" Padding="9,3" CornerRadius="4" Background="{StaticResource AccentSoft}"
                 VerticalAlignment="Center" Visibility="Collapsed">
           <TextBlock x:Name="VersionTagText" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource AccentLight}"/>
@@ -55,7 +56,7 @@
       <StackPanel x:Name="Stepper" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"/>
       <!-- a newer launcher release from this fork (LauncherUpdate.cs); the game's own update is on the launcher page -->
       <Button x:Name="LauncherUpdateButton" Style="{StaticResource BtnAccent}" Height="30" Padding="14,0" FontSize="12"
-              HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,112,0" Visibility="Collapsed"
+              HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,156,0" Visibility="Collapsed"
               WindowChrome.IsHitTestVisibleInChrome="True" Click="LauncherUpdateClick"/>
 
       <Grid Grid.Row="1" Margin="56,12,56,30">
@@ -264,6 +265,31 @@
           </StackPanel>
         </StackPanel>
 
+        <!-- ===== game settings: the totk.ini settings of the game's own menu (GameSettings.cs) ===== -->
+        <Grid x:Name="SettingsPage" Visibility="Collapsed">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+          </Grid.RowDefinitions>
+          <Grid>
+            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock Style="{StaticResource H1}" Text="Game settings"/>
+              <TextBlock x:Name="SettingsNote" Style="{StaticResource Muted}" Margin="0,6,0,0"/>
+            </StackPanel>
+            <Button Grid.Column="1" Style="{StaticResource BtnAccent}" Content="Done" VerticalAlignment="Top" Click="SettingsDone"/>
+          </Grid>
+          <Grid Grid.Row="1" Margin="0,16,0,0">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="150"/><ColumnDefinition/></Grid.ColumnDefinitions>
+            <StackPanel x:Name="SettingsTabs"/>
+            <Border Grid.Column="1" Style="{StaticResource Panel}" Padding="18,2,4,2">
+              <ScrollViewer x:Name="SettingsScroll" VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="SettingsRows" Margin="0,0,14,0"/>
+              </ScrollViewer>
+            </Border>
+          </Grid>
+        </Grid>
+
         <!-- ===== when something goes wrong ===== -->
         <Grid x:Name="ProblemPage" Visibility="Collapsed">
           <Grid.RowDefinitions>
@@ -310,6 +336,10 @@
     <!-- minimize and close, above everything -->
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0" Panel.ZIndex="9"
                 WindowChrome.IsHitTestVisibleInChrome="True">
+      <Button x:Name="SettingsButton" Style="{StaticResource WinBtn}" Click="OpenSettings" ToolTip="Game settings">
+        <TextBlock Text="&#xE713;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="15"
+                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+      </Button>
       <Button Style="{StaticResource WinBtn}" Click="Minimize" ToolTip="Minimize">
         <Rectangle Width="10" Height="1" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
       </Button>

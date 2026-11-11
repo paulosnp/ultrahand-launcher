@@ -80,6 +80,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        LauncherVersionText.Text = "v" + LauncherUpdate.Current;
         LanguageBox.ItemsSource = GameLanguages.All;
         clock.Tick += (_, _) => Tick();
         // (text boxes refuse dropped files: the window handles the drag before they see it)
@@ -314,7 +315,7 @@ public partial class MainWindow : Window
 
     void ShowPage(FrameworkElement page)
     {
-        foreach (var p in new FrameworkElement[] { FilesPage, BuildPage, ReadyPage, ProblemPage, LaunchPage })
+        foreach (var p in new FrameworkElement[] { FilesPage, BuildPage, ReadyPage, ProblemPage, LaunchPage, SettingsPage })
             p.Visibility = p == page ? Visibility.Visible : Visibility.Collapsed;
         page.Opacity = 0;
         page.BeginAnimation(OpacityProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(220)));
