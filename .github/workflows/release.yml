@@ -1,4 +1,4 @@
-﻿name: Launcher
+name: Launcher
 
 # Builds Ultrahand Launcher on every push (artifact UltrahandLauncher-win-x64). A tag launcher-vX.Y.Z also publishes a release with
 # UltrahandLauncher.exe attached, versioned X.Y.Z: installed launchers find it and offer the update (LauncherUpdate.cs).
@@ -39,5 +39,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          version="${GITHUB_REF_NAME#launcher-v}"
+          # the release notes: this version's section of CHANGELOG.md, without its "## X.Y.Z" heading
+          awk -v v="$version" '{sub(/\r$/, "")} /^## /{on = ($2 == v); next} on' CHANGELOG.md > notes.md
+          if ! grep -q '[^[:space:]]' notes.md; then
+            echo "CHANGELOG.md has no section '## $version': add one and tag again." >&2
+            exit 1
+          fi
           gh release create "$GITHUB_REF_NAME" dist/UltrahandLauncher/UltrahandLauncher.exe \
-            --title "Ultrahand Launcher ${GITHUB_REF_NAME#launcher-v}" --generate-notes
+            --title "Ultrahand Launcher $version" --notes-file notes.md

@@ -1,4 +1,4 @@
-﻿# Ultrahand Launcher
+# Ultrahand Launcher
 
 A Windows launcher and installer for [TotK Recomp](https://github.com/valentderah/totk-pc-recomp), in a single `UltrahandLauncher.exe`.
 Download it, open it, pick your game files: it installs the game, keeps it up to date and keeps itself up to date.
@@ -64,7 +64,7 @@ Every push also builds it in GitHub Actions (artifact `UltrahandLauncher-win-x64
 
 ## Releasing a launcher version
 
-The version comes from the tag; there is nothing to edit by hand.
+Add a `## X.Y.Z` section to [CHANGELOG.md](CHANGELOG.md): it becomes the release notes. The version itself comes from the tag.
 
 ```bash
 git tag launcher-v1.1.0
