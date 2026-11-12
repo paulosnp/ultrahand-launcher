@@ -2,6 +2,19 @@
 
 Each release's notes on GitHub come from its section here (`## X.Y.Z`), so add a section before tagging `launcher-vX.Y.Z`.
 
+## 0.1.3
+
+- The settings page has two halves: **Game** (the in-game menu's settings, as before) and **Launcher**.
+- **Save backups** (Launcher > Saves): **Back up now** zips the save folder (your saves, the game's own backup copy of them, the
+  account id and the play time) into `Documents\Ultrahand Launcher\Save backups`. The page lists the backups, opens the save
+  folder and the backups folder, and explains how to restore one.
+- **Crash report**: the launcher now stays in the background while the game runs. If the game closes with an error, the launcher
+  comes back with the end of `logs\totk.log`, the crash line (`FATAL: ...`) highlighted, and buttons to copy a bug report, open
+  the logs folder or play again. A normal exit still closes the launcher.
+- Launcher > General: the Desktop and Start menu shortcuts can be turned on and off, and **Check now** looks for a launcher update.
+- Scroll bars match the launcher's design: thin and rounded, brighter on hover and orange while dragged.
+- The window is a little darker behind the text, so descriptions stay readable over a bright desktop.
+
 ## 0.1.2
 
 - The launcher's version shows in the title bar, next to its name.

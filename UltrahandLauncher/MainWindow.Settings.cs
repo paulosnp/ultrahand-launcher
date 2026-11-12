@@ -8,20 +8,30 @@ using System.Windows.Threading;
 
 namespace Ultrahand;
 
-/// The game settings page behind the gear: the totk.ini settings of the game's own menu (GameSettings.cs), read from and written
-/// to the totk.ini of the installed game folder as the game itself does.
+/// The settings page behind the gear, in two halves. Game: the totk.ini settings of the game's own menu (GameSettings.cs), read
+/// from and written to the totk.ini of the installed game folder as the game itself does. Launcher: save backups (SaveBackup.cs),
+/// the shortcuts and the launcher's own version.
 public partial class MainWindow
 {
     TotkIni? ini;
     FrameworkElement? settingsReturn;   // the page the gear was clicked on
-    int settingsTab;
+    bool launcherSection;
+    int settingsTab, launcherTab;
+    string? backupNote;   // the result of the last backup, shown under its button
+    bool backupOk;
     readonly Dictionary<string, FrameworkElement> settingControls = new();
     readonly Dictionary<string, (Setting Setting, string Value)> pendingWrites = new();
     DispatcherTimer? writeTimer;
     bool settingsProgrammatic;
 
+    static readonly string[] LauncherTabs = { "Saves", "General" };
+    const string ProjectPage = "https://github.com/paulosnp/ultrahand-launcher";
+
     string? SettingsFolder() =>
         Installed.Has(launchFolder) ? launchFolder : Installed.Has(settings.Dest) ? settings.Dest : null;
+
+    Style St(string key) => (Style)FindResource(key);
+    Brush Br(string key) => (Brush)FindResource(key);
 
     void OpenSettings(object sender, RoutedEventArgs e)
     {
@@ -31,33 +41,22 @@ public partial class MainWindow
             MessageBox.Show(this, "Wait for the current run to finish, then change the settings.", "Ultrahand Launcher");
             return;
         }
-        if (SettingsFolder() is not { } folder)
-        {
-            MessageBox.Show(this, "Install the game first: its settings live in totk.ini next to totk.exe.", "Ultrahand Launcher");
-            return;
-        }
-        ini = new TotkIni(folder);
-        var running = Process.GetProcessesByName("totk").Any(p =>
-        {
-            try { return string.Equals(p.MainModule?.FileName, Installed.GameExe(folder), StringComparison.OrdinalIgnoreCase); }
-            catch (Exception) { return false; }
-        });
-        SettingsNote.Text = running
-            ? "The game is running: close it first, or most of these take effect only at its next start."
-            : $"The same settings as the game's menu (Esc / F1), saved in {ini.Path}.";
-        SettingsNote.Foreground = (Brush)FindResource(running ? "Warn" : "TextDim");
-        settingsReturn = new FrameworkElement[] { FilesPage, ReadyPage, ProblemPage, LaunchPage }.FirstOrDefault(p => p.Visibility == Visibility.Visible);
-        SettingsTabs.Children.Clear();
-        for (var i = 0; i < GameSettings.Tabs.Length; i++)
-        {
-            var index = i;
-            var item = new RadioButton { Style = (Style)FindResource("NavItem"), Content = GameSettings.Tabs[i].Name, GroupName = "settings",
-                                         IsChecked = i == settingsTab };
-            item.Checked += (_, _) => ShowSettingsTab(index);
-            SettingsTabs.Children.Add(item);
-        }
-        ShowSettingsTab(settingsTab);
+        ini = SettingsFolder() is { } folder ? new TotkIni(folder) : null;
+        if (ini == null) launcherSection = true;   // (no game yet: its settings have no totk.ini to live in)
+        settingsReturn = new FrameworkElement[] { FilesPage, ReadyPage, ProblemPage, LaunchPage, CrashPage }
+            .FirstOrDefault(p => p.Visibility == Visibility.Visible);
+        settingsProgrammatic = true;
+        (launcherSection ? LauncherSection : GameSection).IsChecked = true;
+        settingsProgrammatic = false;
         ShowPage(SettingsPage);
+        ShowSection();
+    }
+
+    void SectionChanged(object sender, RoutedEventArgs e)
+    {
+        if (settingsProgrammatic) return;
+        launcherSection = sender == LauncherSection;
+        ShowSection();
     }
 
     void SettingsDone(object sender, RoutedEventArgs e)
@@ -68,43 +67,106 @@ public partial class MainWindow
         else ShowFiles();
     }
 
-    void ShowSettingsTab(int index)
+    /// The tab list of the half shown, and its selected tab
+    void ShowSection()
     {
-        settingsTab = index;
+        FlushWrites();
+        SettingsTabs.Children.Clear();
+        var names = launcherSection ? LauncherTabs : GameSettings.Tabs.Select(t => t.Name).ToArray();
+        var selected = launcherSection ? launcherTab : settingsTab;
+        for (var i = 0; i < names.Length; i++)
+        {
+            var index = i;
+            var item = new RadioButton { Style = St("NavItem"), Content = names[i], GroupName = "settingsTab", IsChecked = i == selected };
+            item.Checked += (_, _) => ShowTab(index);
+            SettingsTabs.Children.Add(item);
+        }
+        ShowTab(selected);
+    }
+
+    void ShowTab(int index)
+    {
         settingControls.Clear();
         SettingsRows.Children.Clear();
-        foreach (var group in GameSettings.Tabs[index].Groups)
+        if (launcherSection)
         {
-            if (group.Title != null)
-                SettingsRows.Children.Add(new TextBlock { Text = group.Title.ToUpperInvariant(), Style = (Style)FindResource("Caps"),
-                                                          Margin = new Thickness(0, 18, 0, 2) });
-            for (var i = 0; i < group.Rows.Length; i++) SettingsRows.Children.Add(Row(group.Rows[i], i == group.Rows.Length - 1));
+            launcherTab = index;
+            if (index == 0) ShowSavesTab();
+            else ShowGeneralTab();
+        }
+        else
+        {
+            settingsTab = index;
+            ShowGameTab(index);
         }
         SettingsScroll.ScrollToTop();
     }
+
+    void Note(string text, string brush = "TextDim")
+    {
+        SettingsNote.Text = text;
+        SettingsNote.Foreground = Br(brush);
+    }
+
+    // ================= Game =================
+
+    void ShowGameTab(int index)
+    {
+        if (ini == null)
+        {
+            Note("Install the game first: its settings live in totk.ini next to totk.exe.", "Warn");
+            return;
+        }
+        var folder = Path.GetDirectoryName(ini.Path)!;
+        var running = Process.GetProcessesByName("totk").Any(p =>
+        {
+            try { return string.Equals(p.MainModule?.FileName, Installed.GameExe(folder), StringComparison.OrdinalIgnoreCase); }
+            catch (Exception) { return false; }
+        });
+        if (running) Note("The game is running: close it first, or most of these take effect only at its next start.", "Warn");
+        else Note($"The same settings as the game's menu (Esc / F1), saved in {ini.Path}.");
+        foreach (var group in GameSettings.Tabs[index].Groups)
+        {
+            if (group.Title != null) Heading(group.Title);
+            for (var i = 0; i < group.Rows.Length; i++) SettingsRows.Children.Add(Row(group.Rows[i], i == group.Rows.Length - 1));
+        }
+    }
+
+    void Heading(string title) =>
+        SettingsRows.Children.Add(new TextBlock { Text = title.ToUpperInvariant(), Style = St("Caps"), Margin = new Thickness(0, 18, 0, 2) });
 
     string Current(Setting s) => ini?.Get(s.Key) ?? s.Default;
 
     FrameworkElement Row(Setting s, bool last)
     {
+        var control = s.Toggle ? ToggleControl(s) : s.Choices != null ? ChoiceControl(s) : SliderControl(s);
+        settingControls[s.Key] = control;
+        return RowOf(s.Label, s.Description, control, last);
+    }
+
+    /// One row of the page: the label with its description on the left, the control on the right, a line under it
+    FrameworkElement RowOf(string label, string? description, FrameworkElement? control, bool last, FrameworkElement? below = null)
+    {
         var grid = new Grid { Margin = new Thickness(0, 12, 0, 12) };
         grid.ColumnDefinitions.Add(new ColumnDefinition());
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(250) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = control is ComboBox or Grid ? 250 : 0 });
         var texts = new StackPanel { Margin = new Thickness(0, 0, 18, 0), VerticalAlignment = VerticalAlignment.Center };
-        texts.Children.Add(new TextBlock { Text = s.Label, FontWeight = FontWeights.SemiBold });
-        texts.Children.Add(new TextBlock { Text = s.Description, Style = (Style)FindResource("Tiny"), TextWrapping = TextWrapping.Wrap,
-                                           Margin = new Thickness(0, 3, 0, 0) });
+        texts.Children.Add(new TextBlock { Text = label, FontWeight = FontWeights.SemiBold });
+        if (description != null)
+            texts.Children.Add(new TextBlock { Text = description, Style = St("Tiny"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 3, 0, 0) });
+        if (below != null) texts.Children.Add(below);
         grid.Children.Add(texts);
-        var control = s.Toggle ? ToggleControl(s) : s.Choices != null ? ChoiceControl(s) : SliderControl(s);
-        Grid.SetColumn(control, 1);
-        grid.Children.Add(control);
-        settingControls[s.Key] = control;
-        return new Border { Child = grid, BorderBrush = (Brush)FindResource("Line"), BorderThickness = new Thickness(0, 0, 0, last ? 0 : 1) };
+        if (control != null)
+        {
+            Grid.SetColumn(control, 1);
+            grid.Children.Add(control);
+        }
+        return new Border { Child = grid, BorderBrush = Br("Line"), BorderThickness = new Thickness(0, 0, 0, last ? 0 : 1) };
     }
 
     FrameworkElement ToggleControl(Setting s)
     {
-        var box = new CheckBox { Style = (Style)FindResource("Check"), HorizontalAlignment = HorizontalAlignment.Right,
+        var box = new CheckBox { Style = St("Check"), HorizontalAlignment = HorizontalAlignment.Right,
                                  VerticalAlignment = VerticalAlignment.Center, IsChecked = IsOn(Current(s)) };
         // (Checked and Unchecked, not Click: the keyboard and accessibility tools change the box without a click)
         box.Checked += (_, _) => Write(s, "1");
@@ -124,7 +186,7 @@ public partial class MainWindow
             choices.Add((now, $"{now} (from totk.ini)"));   // a value the menu does not list keeps showing
             at = choices.Count - 1;
         }
-        var box = new ComboBox { Style = (Style)FindResource("Select"), VerticalAlignment = VerticalAlignment.Center,
+        var box = new ComboBox { Style = St("Select"), VerticalAlignment = VerticalAlignment.Center,
                                  ItemsSource = choices.Select(c => c.Name).ToList(), SelectedIndex = at, Tag = choices };
         box.SelectionChanged += (_, _) =>
         {
@@ -152,13 +214,13 @@ public partial class MainWindow
 
     FrameworkElement SliderControl(Setting s)
     {
-        var grid = new Grid { VerticalAlignment = VerticalAlignment.Center };
+        var grid = new Grid { VerticalAlignment = VerticalAlignment.Center, Width = 250 };
         grid.ColumnDefinitions.Add(new ColumnDefinition());
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70) });
-        var slider = new Slider { Style = (Style)FindResource("Range"), Minimum = s.Min, Maximum = s.Max, TickFrequency = s.Step,
+        var slider = new Slider { Style = St("Range"), Minimum = s.Min, Maximum = s.Max, TickFrequency = s.Step,
                                   SmallChange = s.Step, LargeChange = s.Step * 4,
                                   Value = Math.Clamp(Parse(Current(s), Parse(s.Default, s.Min)), s.Min, s.Max) };
-        var label = new TextBlock { Style = (Style)FindResource("Muted"), HorizontalAlignment = HorizontalAlignment.Right,
+        var label = new TextBlock { Style = St("Muted"), HorizontalAlignment = HorizontalAlignment.Right,
                                     VerticalAlignment = VerticalAlignment.Center, Text = Shown(s, slider.Value) };
         Grid.SetColumn(label, 1);
         grid.Children.Add(slider);
@@ -221,5 +283,129 @@ public partial class MainWindow
             pendingWrites.Clear();
             MessageBox.Show(this, $"totk.ini could not be written: {x.Message}", "Ultrahand Launcher");
         }
+    }
+
+    // ================= Launcher: Saves =================
+
+    Button SmallButton(string text, string style = "Btn") =>
+        new() { Style = St(style), Content = text, Height = 34, Padding = new Thickness(14, 0, 14, 0), VerticalAlignment = VerticalAlignment.Center };
+
+    void ShowSavesTab()
+    {
+        Note($"Save backups go to {SaveBackup.Folder}.");
+        var folder = SettingsFolder();
+        var profile = folder != null && ini != null ? SaveBackup.ProfileDir(folder, ini) : null;
+        var hasSaves = profile != null && Directory.Exists(profile);
+
+        Button? open = null;
+        if (hasSaves)
+        {
+            open = SmallButton("Open");
+            open.Click += (_, _) => OpenExplorer(profile!);
+        }
+        SettingsRows.Children.Add(RowOf("Save folder", hasSaves ? profile : "No installed game with a save folder was found.", open, false));
+
+        var backup = SmallButton("Back up now", "BtnAccent");
+        backup.IsEnabled = hasSaves;
+        var status = new TextBlock { Style = St("Tiny"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 6, 0, 0),
+                                     Text = backupNote ?? "", Visibility = backupNote == null ? Visibility.Collapsed : Visibility.Visible,
+                                     Foreground = Br(backupOk ? "Ok" : "Bad") };
+        backup.Click += async (_, _) =>
+        {
+            backup.IsEnabled = false;
+            backup.Content = "Backing up…";
+            try
+            {
+                var zip = await Task.Run(() => SaveBackup.Create(profile!));
+                backupOk = true;
+                backupNote = $"Saved {Path.GetFileName(zip)} ({new FileInfo(zip).Length / 1048576.0:0.0} MB).";
+            }
+            catch (Exception x)
+            {
+                backupOk = false;
+                backupNote = "The backup failed: " + x.Message;
+            }
+            if (launcherSection && launcherTab == 0 && SettingsPage.Visibility == Visibility.Visible) ShowTab(0);   // (the list below grows)
+        };
+        SettingsRows.Children.Add(RowOf("Back up the save",
+            "Zips the save folder: your saves, the game's own backup copy of them, the account id and the play time. Close the game " +
+            "first: a backup made while the game is saving can catch a save half written.", backup, false, status));
+
+        var backups = SaveBackup.List();
+        var listed = backups.Length == 0
+            ? "None yet."
+            : string.Join("\n", backups.Take(5).Select(f => $"{Path.GetFileNameWithoutExtension(f.Name)}  ·  {f.Length / 1048576.0:0.0} MB")) +
+              (backups.Length > 5 ? $"\nand {backups.Length - 5} older" : "");
+        Button? folderButton = null;
+        if (Directory.Exists(SaveBackup.Folder))
+        {
+            folderButton = SmallButton("Open folder");
+            folderButton.Click += (_, _) => OpenExplorer(SaveBackup.Folder);
+        }
+        SettingsRows.Children.Add(RowOf("Backups", listed, folderButton, false));
+        SettingsRows.Children.Add(RowOf("Restoring a backup",
+            "Close the game, open the backup (it is a zip file) and copy its profile folder into the game folder, replacing the files " +
+            "there.", null, true));
+    }
+
+    // ================= Launcher: General =================
+
+    void ShowGeneralTab()
+    {
+        Note($"Ultrahand Launcher {LauncherUpdate.Current}, installed in {App.InstallDir}.");
+        var folder = SettingsFolder();
+        CheckBox Shortcut(bool on, Action<bool> set)
+        {
+            var box = new CheckBox { Style = St("Check"), VerticalAlignment = VerticalAlignment.Center, IsChecked = on };
+            void Apply(bool value)
+            {
+                set(value);
+                settings.Save();
+                Shortcuts.Make(folder, settings.DesktopShortcut, settings.StartShortcut);
+            }
+            box.Checked += (_, _) => Apply(true);
+            box.Unchecked += (_, _) => Apply(false);
+            return box;
+        }
+        Heading("Shortcuts");
+        SettingsRows.Children.Add(RowOf("Desktop shortcut", "Ultrahand Launcher on the Desktop.",
+            Shortcut(settings.DesktopShortcut, v => settings.DesktopShortcut = v), false));
+        SettingsRows.Children.Add(RowOf("Start menu shortcut", "Ultrahand Launcher in the Start menu.",
+            Shortcut(settings.StartShortcut, v => settings.StartShortcut = v), true));
+
+        Heading("Updates");
+        var check = SmallButton("Check now");
+        var status = new TextBlock { Style = St("Tiny"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 6, 0, 0), Visibility = Visibility.Collapsed };
+        check.Click += async (_, _) =>
+        {
+            check.IsEnabled = false;
+            var found = await LauncherUpdate.Check();
+            check.IsEnabled = true;
+            status.Visibility = Visibility.Visible;
+            if (found == null)
+            {
+                status.Text = $"{LauncherUpdate.Current} is the latest version (or GitHub could not be reached).";
+                status.Foreground = Br("TextDim");
+                return;
+            }
+            status.Text = LauncherUpdate.CanApply
+                ? $"Version {found.Version} is out: use \"Update launcher\" at the top of the window."
+                : $"Version {found.Version} is out. This copy is not the installed one, so it cannot update itself.";
+            status.Foreground = Br("AccentLight");
+            launcherUpdate = found;
+            if (LauncherUpdate.CanApply)
+            {
+                LauncherUpdateButton.Content = $"Update launcher to {found.Version}";
+                LauncherUpdateButton.Visibility = Visibility.Visible;
+            }
+        };
+        SettingsRows.Children.Add(RowOf("Launcher version",
+            $"You have {LauncherUpdate.Current}. The launcher looks for a new version each time it opens.", check, false, status));
+        var page = SmallButton("Open");
+        page.Click += (_, _) =>
+        {
+            try { Process.Start(new ProcessStartInfo(ProjectPage) { UseShellExecute = true }); } catch (Exception) { }
+        };
+        SettingsRows.Children.Add(RowOf("Project page", "Releases, changelog and bug reports: " + ProjectPage, page, true));
     }
 }

@@ -473,5 +473,91 @@
       </Setter>
     </Style>
 
+    <!-- the two halves of the settings page: Game and Launcher -->
+    <Style x:Key="SegItem" TargetType="RadioButton">
+      <Setter Property="FontFamily" Value="{StaticResource Ui}"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Foreground" Value="{StaticResource TextDim}"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="RadioButton">
+            <Border x:Name="Face" Background="Transparent" CornerRadius="5" Padding="16,7">
+              <ContentPresenter HorizontalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource Text}"/>
+              </Trigger>
+              <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Face" Property="Background" Value="{StaticResource Accent}"/>
+                <Setter Property="Foreground" Value="{StaticResource AccentText}"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- every scroll bar: a thin rounded thumb on a clear track, brighter on hover and in the accent while dragged -->
+    <Style x:Key="ScrollThumb" TargetType="Thumb">
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Thumb">
+            <Border x:Name="Bar" CornerRadius="3" Background="{StaticResource LineStrong}"/>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bar" Property="Background" Value="{StaticResource TextMuted}"/>
+              </Trigger>
+              <Trigger Property="IsDragging" Value="True">
+                <Setter TargetName="Bar" Property="Background" Value="{StaticResource Accent}"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style TargetType="ScrollBar">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Width" Value="10"/>
+      <Setter Property="MinWidth" Value="10"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ScrollBar">
+            <Grid Background="Transparent">
+              <Track x:Name="PART_Track" IsDirectionReversed="True">
+                <Track.DecreaseRepeatButton><RepeatButton Command="ScrollBar.PageUpCommand" Style="{StaticResource RangeEmpty}"/></Track.DecreaseRepeatButton>
+                <Track.IncreaseRepeatButton><RepeatButton Command="ScrollBar.PageDownCommand" Style="{StaticResource RangeEmpty}"/></Track.IncreaseRepeatButton>
+                <Track.Thumb><Thumb Style="{StaticResource ScrollThumb}" Margin="3,2"/></Track.Thumb>
+              </Track>
+            </Grid>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+      <Style.Triggers>
+        <Trigger Property="Orientation" Value="Horizontal">
+          <Setter Property="Width" Value="Auto"/>
+          <Setter Property="MinWidth" Value="0"/>
+          <Setter Property="Height" Value="10"/>
+          <Setter Property="MinHeight" Value="10"/>
+          <Setter Property="Template">
+            <Setter.Value>
+              <ControlTemplate TargetType="ScrollBar">
+                <Grid Background="Transparent">
+                  <Track x:Name="PART_Track">
+                    <Track.DecreaseRepeatButton><RepeatButton Command="ScrollBar.PageLeftCommand" Style="{StaticResource RangeEmpty}"/></Track.DecreaseRepeatButton>
+                    <Track.IncreaseRepeatButton><RepeatButton Command="ScrollBar.PageRightCommand" Style="{StaticResource RangeEmpty}"/></Track.IncreaseRepeatButton>
+                    <Track.Thumb><Thumb Style="{StaticResource ScrollThumb}" Margin="2,3"/></Track.Thumb>
+                  </Track>
+                </Grid>
+              </ControlTemplate>
+            </Setter.Value>
+          </Setter>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+
   </Application.Resources>
 </Application>

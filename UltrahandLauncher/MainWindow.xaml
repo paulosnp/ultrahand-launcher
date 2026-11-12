@@ -13,8 +13,9 @@
   <Grid x:Name="Root">
     <Grid.Background>
       <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#3A2A140C" Offset="0"/>
-        <GradientStop Color="#5514110F" Offset="1"/>
+        <!-- (dark enough that the text stays readable whatever the acrylic shows from behind the window) -->
+        <GradientStop Color="#B82A140C" Offset="0"/>
+        <GradientStop Color="#D014110F" Offset="1"/>
       </LinearGradientBrush>
     </Grid.Background>
 
@@ -265,19 +266,26 @@
           </StackPanel>
         </StackPanel>
 
-        <!-- ===== game settings: the totk.ini settings of the game's own menu (GameSettings.cs) ===== -->
+        <!-- ===== settings: Game (the totk.ini settings of the game's own menu, GameSettings.cs) and Launcher ===== -->
         <Grid x:Name="SettingsPage" Visibility="Collapsed">
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
           </Grid.RowDefinitions>
           <Grid>
-            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <StackPanel>
-              <TextBlock Style="{StaticResource H1}" Text="Game settings"/>
+              <TextBlock Style="{StaticResource H1}" Text="Settings"/>
               <TextBlock x:Name="SettingsNote" Style="{StaticResource Muted}" Margin="0,6,0,0"/>
             </StackPanel>
-            <Button Grid.Column="1" Style="{StaticResource BtnAccent}" Content="Done" VerticalAlignment="Top" Click="SettingsDone"/>
+            <Border Grid.Column="1" CornerRadius="7" Padding="3" Background="{StaticResource Surface}" BorderBrush="{StaticResource Line}"
+                    BorderThickness="1" VerticalAlignment="Top" Margin="16,0,12,0">
+              <StackPanel x:Name="SettingsSections" Orientation="Horizontal">
+                <RadioButton x:Name="GameSection" Style="{StaticResource SegItem}" GroupName="section" Content="Game" Checked="SectionChanged"/>
+                <RadioButton x:Name="LauncherSection" Style="{StaticResource SegItem}" GroupName="section" Content="Launcher" Checked="SectionChanged"/>
+              </StackPanel>
+            </Border>
+            <Button Grid.Column="2" Style="{StaticResource BtnAccent}" Content="Done" VerticalAlignment="Top" Click="SettingsDone"/>
           </Grid>
           <Grid Grid.Row="1" Margin="0,16,0,0">
             <Grid.ColumnDefinitions><ColumnDefinition Width="150"/><ColumnDefinition/></Grid.ColumnDefinitions>
@@ -287,6 +295,41 @@
                 <StackPanel x:Name="SettingsRows" Margin="0,0,14,0"/>
               </ScrollViewer>
             </Border>
+          </Grid>
+        </Grid>
+
+        <!-- ===== the game stopped with an error: the end of its log (logs\totk.log) ===== -->
+        <Grid x:Name="CrashPage" Visibility="Collapsed">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <StackPanel>
+            <TextBlock x:Name="CrashTitle" Style="{StaticResource H1}" Text="The game stopped"/>
+            <TextBlock x:Name="CrashSub" Style="{StaticResource Lead}"/>
+          </StackPanel>
+          <Border Grid.Row="1" Style="{StaticResource Panel}" Margin="0,18,0,14" ClipToBounds="True">
+            <Grid>
+              <Grid.ColumnDefinitions><ColumnDefinition Width="4"/><ColumnDefinition/></Grid.ColumnDefinitions>
+              <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+              <Rectangle Grid.RowSpan="2" Fill="{StaticResource Bad}"/>
+              <TextBlock x:Name="CrashSummary" Grid.Column="1" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource Bad}"
+                         TextWrapping="Wrap" Margin="18,14,18,8"/>
+              <TextBox x:Name="CrashLog" Grid.Row="1" Grid.Column="1" IsReadOnly="True" BorderThickness="0" Background="Transparent"
+                       Foreground="{StaticResource TextDim}" FontFamily="{StaticResource Mono}" FontSize="11" Padding="14,0,6,8"
+                       VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" TextWrapping="NoWrap"/>
+            </Grid>
+          </Border>
+          <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+              <Button x:Name="CrashCopy" Style="{StaticResource TextLink}" Content="Copy for a bug report" Click="CrashCopyClick"/>
+              <TextBlock Style="{StaticResource Tiny}" FontSize="13" Text="   |   " VerticalAlignment="Center"/>
+              <Button Style="{StaticResource TextLink}" Content="Open the logs folder" Click="CrashLogsClick"/>
+            </StackPanel>
+            <Button Grid.Column="1" Style="{StaticResource Btn}" Content="Back" Click="CrashBackClick"/>
+            <Button Grid.Column="2" Style="{StaticResource BtnAccent}" Content="Play again" Margin="10,0,0,0" Click="CrashPlayClick"/>
           </Grid>
         </Grid>
 

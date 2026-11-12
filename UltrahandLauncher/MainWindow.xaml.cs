@@ -315,7 +315,7 @@ public partial class MainWindow : Window
 
     void ShowPage(FrameworkElement page)
     {
-        foreach (var p in new FrameworkElement[] { FilesPage, BuildPage, ReadyPage, ProblemPage, LaunchPage, SettingsPage })
+        foreach (var p in new FrameworkElement[] { FilesPage, BuildPage, ReadyPage, ProblemPage, LaunchPage, SettingsPage, CrashPage })
             p.Visibility = p == page ? Visibility.Visible : Visibility.Collapsed;
         page.Opacity = 0;
         page.BeginAnimation(OpacityProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(220)));
@@ -367,7 +367,7 @@ public partial class MainWindow : Window
 
     void LaunchPlayClick(object sender, RoutedEventArgs e)
     {
-        if (StartGame(launchFolder)) Application.Current.Shutdown();
+        PlayAndWatch(launchFolder);
     }
 
     void LaunchFolderClick(object sender, RoutedEventArgs e) => OpenExplorer(launchFolder);
@@ -377,20 +377,6 @@ public partial class MainWindow : Window
     void BackToLauncherClick(object sender, RoutedEventArgs e)
     {
         if (launchFolder.Length > 0) ShowLauncher(launchFolder);
-    }
-
-    bool StartGame(string folder)
-    {
-        try
-        {
-            Process.Start(new ProcessStartInfo(Installed.GameExe(folder)) { UseShellExecute = false, WorkingDirectory = folder });
-            return true;
-        }
-        catch (Exception x)
-        {
-            MessageBox.Show(this, $"The game could not be started: {x.Message}", "Ultrahand Launcher");
-            return false;
-        }
     }
 
     static void OpenExplorer(string folder)
@@ -1051,7 +1037,7 @@ public partial class MainWindow : Window
         launchFolder = runDest;
         if (kind == Kind.Rebuild)
         {
-            if (StartGame(runDest)) Application.Current.Shutdown();
+            PlayAndWatch(runDest);
             return;
         }
         SetStep(2);
@@ -1122,7 +1108,7 @@ public partial class MainWindow : Window
 
     void Play(object sender, RoutedEventArgs e)
     {
-        if (StartGame(runDest)) Application.Current.Shutdown();
+        PlayAndWatch(runDest);
     }
 
     void OpenFolder(object sender, RoutedEventArgs e) => OpenExplorer(runDest);
@@ -1184,7 +1170,7 @@ public partial class MainWindow : Window
 
     void PlayAnywayClick(object sender, RoutedEventArgs e)
     {
-        if (StartGame(runDest)) Application.Current.Shutdown();
+        PlayAndWatch(runDest);
     }
 
     // ================= the window =================
