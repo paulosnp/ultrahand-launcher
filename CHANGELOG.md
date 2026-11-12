@@ -2,6 +2,13 @@
 
 Each release's notes on GitHub come from its section here (`## X.Y.Z`), so add a section before tagging `launcher-vX.Y.Z`.
 
+## 0.1.4
+
+- **Play starts the game the way a double click in Explorer does** (through the Windows shell). Before, the launcher started
+  `totk.exe` directly and handed it its own process handles, and the game could close right after its first window while
+  opening `totk.exe` by hand worked ([#1](https://github.com/paulosnp/ultrahand-launcher/issues/1)). The crash report of 0.1.3
+  still works: an error brings the launcher back with the game's log, a normal exit closes it.
+
 ## 0.1.3
 
 - The settings page has two halves: **Game** (the in-game menu's settings, as before) and **Launcher**.

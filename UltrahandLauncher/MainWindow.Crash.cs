@@ -17,14 +17,21 @@ public partial class MainWindow
         Process? game;
         try
         {
-            game = Process.Start(new ProcessStartInfo(Installed.GameExe(folder)) { UseShellExecute = false, WorkingDirectory = folder });
+            // Through the shell, as a double click in Explorer starts it: CreateProcess from .NET (UseShellExecute = false) hands
+            // the game the launcher's inheritable handles and standard handles, and a player reported totk.exe closing at once
+            // when the launcher started it while it ran when opened directly (issue #1).
+            game = Process.Start(new ProcessStartInfo(Installed.GameExe(folder)) { UseShellExecute = true, WorkingDirectory = folder });
         }
         catch (Exception x)
         {
             MessageBox.Show(this, $"The game could not be started: {x.Message}", "Ultrahand Launcher");
             return;
         }
-        if (game == null) return;
+        if (game == null)
+        {
+            Application.Current.Shutdown();   // (started, but the shell gave no process to wait for)
+            return;
+        }
         var started = DateTime.Now;
         Hide();
         int code;
