@@ -10,7 +10,7 @@ namespace Ultrahand;
 /// A GitHub release and its Windows setup package (TotK-Setup-&lt;version&gt;-windows.zip, written by tools/make_release.py)
 sealed record Release(string Tag, string AssetName, string Url, long Size)
 {
-    public string SizeText => Size > 0 ? $"{Size / 1048576.0:0} MB" : "unknown size";
+    public string SizeText => Size > 0 ? $"{Size / 1048576.0:0} MB" : Tr.T("unknown size");
 }
 
 /// Finds the latest release of the repository and turns its setup package into a folder under SetupPackage.Store
@@ -102,10 +102,10 @@ static class Releases
         var downloads = Path.Combine(Settings.Folder, "downloads");
         Directory.CreateDirectory(downloads);
         var zip = Path.Combine(downloads, release.AssetName);
-        note($"Downloading {release.AssetName} ({release.SizeText})");
+        note(Tr.F("Downloading {0} ({1})", release.AssetName, release.SizeText));
         await Download(release.Url, release.Size, zip, f => progress(0.85 * f), note, token);
 
-        note("Unpacking the setup package");
+        note(Tr.T("Unpacking the setup package"));
         var staging = folder + ".part";
         await Task.Run(() => Unpack(zip, staging, f => progress(0.85 + 0.15 * f), token), token);
         var root = PackageRoot(staging) ?? throw new InvalidDataException(
@@ -159,7 +159,7 @@ static class Releases
             catch (HttpRequestException e) when (attempt < attempts && Retryable(e))
             {
                 var wait = TimeSpan.FromSeconds(3 * attempt);
-                note($"GitHub did not answer ({e.Message}). Trying again in {wait.TotalSeconds:0} s ({attempt + 1} of {attempts})...");
+                note(Tr.F("GitHub did not answer ({0}). Trying again in {1:0} s ({2} of {3})...", e.Message, wait.TotalSeconds, attempt + 1, attempts));
                 await Task.Delay(wait, token);
             }
         }

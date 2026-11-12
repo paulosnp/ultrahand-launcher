@@ -80,7 +80,9 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        Tr.Apply(this);
         LauncherVersionText.Text = "v" + LauncherUpdate.Current;
+        wasInstalledBefore = settings.LauncherShortcuts;
         LanguageBox.ItemsSource = GameLanguages.All;
         clock.Tick += (_, _) => Tick();
         // (text boxes refuse dropped files: the window handles the drag before they see it)
@@ -128,7 +130,7 @@ public partial class MainWindow : Window
         }
         if (Arg("--rebuild") is { } rebuild)
         {
-            SplashText.Text = "Rebuilding for your mods…";
+            SplashText.Text = Tr.T("Rebuilding for your mods…");
             await Task.Delay(700);
             ShowMain();
             launchFolder = rebuild;
@@ -137,7 +139,7 @@ public partial class MainWindow : Window
         }
         if (Arg("--update") is { } update)
         {
-            SplashText.Text = "Getting the update…";
+            SplashText.Text = Tr.T("Getting the update…");
             await Task.Delay(700);
             ShowMain();
             launchFolder = update;
@@ -147,17 +149,17 @@ public partial class MainWindow : Window
         var launch = Arg("--launch") ?? (Installed.Has(settings.Dest) ? settings.Dest : null);
         if (launch != null)
         {
-            SplashText.Text = "Starting TotK Recomp…";
+            SplashText.Text = Tr.T("Starting TotK Recomp…");
             await Task.Delay(700);
             ShowMain();
-            ShowLauncher(launch);
+            ShowLauncher(launch); ShowNotesIfUpdated();
             return;
         }
-        SplashText.Text = localPackage != null ? $"Setup package {Versions.Short(localPackage.Version)} found" : "Looking for the latest version…";
+        SplashText.Text = localPackage != null ? Tr.F("Setup package {0} found", Versions.Short(localPackage.Version)) : Tr.T("Looking for the latest version…");
         var wait = 1500 - (int)started.ElapsedMilliseconds;
         if (wait > 0) await Task.Delay(wait);
         ShowMain();
-        ShowFiles();
+        ShowFiles(); ShowNotesIfUpdated();
     }
 
     /// The latest GitHub release, once per run; the pages refresh when it arrives
@@ -182,8 +184,8 @@ public partial class MainWindow : Window
         if (!LauncherUpdate.CanApply) return;
         launcherUpdate = await LauncherUpdate.Check();
         if (launcherUpdate == null) return;
-        LauncherUpdateButton.Content = $"Update launcher to {launcherUpdate.Version}";
-        LauncherUpdateButton.ToolTip = $"Ultrahand Launcher {LauncherUpdate.Current} is installed. The game is not touched.";
+        LauncherUpdateButton.Content = Tr.F("Update launcher to {0}", launcherUpdate.Version);
+        LauncherUpdateButton.ToolTip = Tr.F("Ultrahand Launcher {0} is installed. The game is not touched.", LauncherUpdate.Current);
         LauncherUpdateButton.Visibility = Visibility.Visible;
     }
 
@@ -192,20 +194,20 @@ public partial class MainWindow : Window
         if (launcherUpdate == null) return;
         if (run != null || download != null)
         {
-            MessageBox.Show(this, "Wait for the current run to finish, then update the launcher.", "Ultrahand Launcher");
+            MessageBox.Show(this, Tr.T("Wait for the current run to finish, then update the launcher."), "Ultrahand Launcher");
             return;
         }
         LauncherUpdateButton.IsEnabled = false;
         try
         {
             await LauncherUpdate.Apply(launcherUpdate, f => Dispatcher.BeginInvoke(() =>
-                LauncherUpdateButton.Content = $"Updating launcher… {(int)(f * 100)}%"), CancellationToken.None);
+                LauncherUpdateButton.Content = Tr.F("Updating launcher… {0}%", (int)(f * 100))), CancellationToken.None);
             Application.Current.Shutdown();   // (the new launcher is already starting)
         }
         catch (Exception x)
         {
-            MessageBox.Show(this, $"The launcher could not be updated: {x.Message}", "Ultrahand Launcher");
-            LauncherUpdateButton.Content = $"Update launcher to {launcherUpdate.Version}";
+            MessageBox.Show(this, Tr.F("The launcher could not be updated: {0}", x.Message), "Ultrahand Launcher");
+            LauncherUpdateButton.Content = Tr.F("Update launcher to {0}", launcherUpdate.Version);
             LauncherUpdateButton.IsEnabled = true;
         }
     }
@@ -276,7 +278,7 @@ public partial class MainWindow : Window
     void SetStep(int on)
     {
         Stepper.Children.Clear();
-        var names = new[] { "Files", "Install", "Play" };
+        var names = new[] { Tr.T("Files"), Tr.T("Install"), Tr.T("Play") };
         for (var i = 0; i < names.Length; i++)
         {
             if (i > 0)
@@ -344,21 +346,21 @@ public partial class MainWindow : Window
         var installed = Installed.Release(launchFolder);
         if (installed == null)
         {
-            LaunchStatus.Text = "This folder has no TotK Recomp install. Use \"Install to another folder\".";
+            LaunchStatus.Text = Tr.T("This folder has no TotK Recomp install. Use \"Install to another folder\".");
             return;
         }
         var target = TargetVersion();
         if (target != null && Versions.Newer(target, installed))
         {
             var fetch = latest != null && target == latest.Tag && (localPackage == null || Versions.Newer(latest.Tag, localPackage.Version));
-            LaunchStatus.Text = $"Update available: {Versions.Short(target)}" + (fetch ? $" · {latest!.SizeText} download" : "");
+            LaunchStatus.Text = Tr.F("Update available: {0}", Versions.Short(target)) + (fetch ? Tr.F(" · {0} download", latest!.SizeText) : "");
             LaunchStatus.Foreground = (Brush)FindResource("AccentLight");
             LaunchStatus.FontWeight = FontWeights.SemiBold;
             LaunchUpdate.Visibility = Visibility.Visible;
         }
-        else if (!latestChecked) LaunchStatus.Text = "Looking for updates…";
-        else if (latest == null) LaunchStatus.Text = "Could not look for updates (GitHub did not answer).";
-        else LaunchStatus.Text = $"Up to date · {latest.Tag} is the latest version";
+        else if (!latestChecked) LaunchStatus.Text = Tr.T("Looking for updates…");
+        else if (latest == null) LaunchStatus.Text = Tr.T("Could not look for updates (GitHub did not answer).");
+        else LaunchStatus.Text = Tr.F("Up to date · {0} is the latest version", latest.Tag);
     }
 
     void LaunchUpdateClick(object sender, RoutedEventArgs e) => BeginFor(launchFolder, Kind.Update);
@@ -403,18 +405,18 @@ public partial class MainWindow : Window
         PackageNote.Foreground = (Brush)FindResource("TextDim");
         if (!latestChecked)
             PackageNote.Text = have != null
-                ? $"Setup package {Versions.Short(have.Version)} on this PC. Looking for newer versions in the GitHub releases…"
-                : $"Looking for the setup package in the GitHub releases ({settings.RepoName})…";
+                ? Tr.F("Setup package {0} on this PC. Looking for newer versions in the GitHub releases…", Versions.Short(have.Version))
+                : Tr.F("Looking for the setup package in the GitHub releases ({0})…", settings.RepoName);
         else if (latest != null && (have == null || Versions.Newer(latest.Tag, have.Version)))
-            PackageNote.Text = $"The install downloads package {latest.Tag} from the GitHub releases ({latest.SizeText}) to {SetupPackage.Store}." +
-                               (have != null ? $" This PC has {Versions.Short(have.Version)}." : "");
+            PackageNote.Text = Tr.F("The install downloads package {0} from the GitHub releases ({1}) to {2}.", latest.Tag, latest.SizeText, SetupPackage.Store) +
+                               (have != null ? Tr.F(" This PC has {0}.", Versions.Short(have.Version)) : "");
         else if (have != null)
-            PackageNote.Text = $"Setup package {Versions.Short(have.Version)} on this PC" +
-                               (latest == null ? " (GitHub did not answer: newer versions could not be checked)." : ", the latest version.");
+            PackageNote.Text = Tr.F("Setup package {0} on this PC", Versions.Short(have.Version)) +
+                               (latest == null ? Tr.T(" (GitHub did not answer: newer versions could not be checked).") : Tr.T(", the latest version."));
         else
         {
-            PackageNote.Text = $"No setup package on this PC and GitHub did not answer ({settings.RepoName}). Check the connection, or unpack a " +
-                               "TotK-Setup-<version>-windows.zip into a \"setup\" folder next to this launcher.";
+            PackageNote.Text = Tr.F("No setup package on this PC and GitHub did not answer ({0}). Check the connection, or unpack a " +
+                               "TotK-Setup-<version>-windows.zip into a \"setup\" folder next to this launcher.", settings.RepoName);
             PackageNote.Foreground = (Brush)FindResource("Bad");
         }
     }
@@ -454,13 +456,13 @@ public partial class MainWindow : Window
             var enough = free >= need;
             SpaceBar.Value = Math.Min(1, need / (double)Math.Max(1, free));
             SpaceBar.Foreground = (Brush)FindResource(enough ? "Ok" : "Bad");
-            SpaceText.Text = $"Needs {need / 1_000_000_000} GB · {root.TrimEnd('\\')} has {free / 1_000_000_000} GB free";
+            SpaceText.Text = Tr.F("Needs {0} GB · {1} has {2} GB free", need / 1_000_000_000, root.TrimEnd('\\'), free / 1_000_000_000);
             SpaceText.Foreground = (Brush)FindResource(enough ? "TextDim" : "Bad");
         }
         catch (Exception)
         {
             SpaceBar.Value = 0;
-            SpaceText.Text = $"Needs {need / 1_000_000_000} GB";
+            SpaceText.Text = Tr.F("Needs {0} GB", need / 1_000_000_000);
             SpaceText.Foreground = (Brush)FindResource("TextDim");
         }
     }
@@ -482,24 +484,24 @@ public partial class MainWindow : Window
             }
             if (target != null && Versions.Newer(target, installed))
             {
-                FilesTitle.Text = "Update available";
-                FilesSub.Text = $"This folder has TotK Recomp {Versions.Short(installed)} and {Versions.Short(target)} is out. The update keeps the " +
-                                "extracted game, your saves and your settings, and redoes only what changed.";
-                BuildButton.Content = "Update";
+                FilesTitle.Text = Tr.T("Update available");
+                FilesSub.Text = Tr.F("This folder has TotK Recomp {0} and {1} is out. The update keeps the " +
+                                "extracted game, your saves and your settings, and redoes only what changed.", Versions.Short(installed), Versions.Short(target));
+                BuildButton.Content = Tr.T("Update");
             }
             else
             {
-                FilesTitle.Text = "This folder already has the game";
-                FilesSub.Text = $"TotK Recomp {Versions.Short(installed)}. Continue resumes an interrupted install and checks what is already done; " +
-                                "the game files are only needed if they have to be extracted again.";
-                BuildButton.Content = "Continue";
+                FilesTitle.Text = Tr.T("This folder already has the game");
+                FilesSub.Text = Tr.F("TotK Recomp {0}. Continue resumes an interrupted install and checks what is already done; " +
+                                "the game files are only needed if they have to be extracted again.", Versions.Short(installed));
+                BuildButton.Content = Tr.T("Continue");
             }
         }
         else
         {
-            FilesTitle.Text = "Install your game";
-            FilesSub.Text = "Pick your game files and where the game should go. The installer builds the game on your PC, once.";
-            BuildButton.Content = "Install the game";
+            FilesTitle.Text = Tr.T("Install your game");
+            FilesSub.Text = Tr.T("Pick your game files and where the game should go. The installer builds the game on your PC, once.");
+            BuildButton.Content = Tr.T("Install the game");
         }
         BuildButton.IsEnabled = dest.Length > 2;
         BackToLauncher.Visibility = launchFolder.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -512,10 +514,10 @@ public partial class MainWindow : Window
         var which = (string)((Button)sender).Tag;
         var d = new OpenFileDialog
         {
-            Title = which switch { "base" => "Choose the base game file", "update" => "Choose the 1.1.0, 1.2.1 or 1.4.3 update", _ => "Choose prod.keys" },
+            Title = Tr.T(which switch { "base" => "Choose the base game file", "update" => "Choose the 1.1.0, 1.2.1 or 1.4.3 update", _ => "Choose prod.keys" }),
             Filter = which == "keys"
-                ? "Key files (*.keys)|*.keys|All files|*.*"
-                : "Game files (NSP, XCI, NSZ, XCZ)|*.nsp;*.xci;*.nsz;*.xcz|All files|*.*",
+                ? Tr.T("Key files (*.keys)|*.keys|All files|*.*")
+                : Tr.T("Game files (NSP, XCI, NSZ, XCZ)|*.nsp;*.xci;*.nsz;*.xcz|All files|*.*"),
         };
         var now = Box(which).Text.Trim();
         if (now.Length > 0 && IOPath.GetDirectoryName(now) is { } dir && Directory.Exists(dir)) d.InitialDirectory = dir;
@@ -524,12 +526,12 @@ public partial class MainWindow : Window
 
     void BrowseFirmware(object sender, RoutedEventArgs e)
     {
-        if (PickFolder("Choose the Switch firmware folder (Contents/registered)") is { } f) FirmwarePath.Text = f;
+        if (PickFolder(Tr.T("Choose the Switch firmware folder (Contents/registered)")) is { } f) FirmwarePath.Text = f;
     }
 
     void BrowseOut(object sender, RoutedEventArgs e)
     {
-        if (PickFolder("Choose where the game goes") is { } f) OutPath.Text = f;
+        if (PickFolder(Tr.T("Choose where the game goes")) is { } f) OutPath.Text = f;
     }
 
     static string? PickFolder(string title)
@@ -574,7 +576,7 @@ public partial class MainWindow : Window
     List<string> Problems(string dest, bool install)
     {
         var p = new List<string>();
-        if (dest.Length < 3) p.Add("Choose the install folder.");
+        if (dest.Length < 3) p.Add(Tr.T("Choose the install folder."));
         foreach (var (box, need, missing) in new[]
                  {
                      (BasePath, "Choose the base game file.", "The base game file does not exist."),
@@ -583,11 +585,11 @@ public partial class MainWindow : Window
                  })
         {
             var v = box.Text.Trim();
-            if (v.Length == 0) { if (install) p.Add(need); }
-            else if (!File.Exists(v)) p.Add(missing);
+            if (v.Length == 0) { if (install) p.Add(Tr.T(need)); }
+            else if (!File.Exists(v)) p.Add(Tr.T(missing));
         }
-        if (FirmwarePath.Text.Trim() is { Length: > 0 } fw && !Directory.Exists(fw)) p.Add("The firmware folder does not exist.");
-        if (LanguageBox.SelectedItem is not GameLanguages.Item) p.Add("Choose the game language.");
+        if (FirmwarePath.Text.Trim() is { Length: > 0 } fw && !Directory.Exists(fw)) p.Add(Tr.T("The firmware folder does not exist."));
+        if (LanguageBox.SelectedItem is not GameLanguages.Item) p.Add(Tr.T("Choose the game language."));
         return p;
     }
 
@@ -656,23 +658,23 @@ public partial class MainWindow : Window
                 ShowTag($"{Versions.Short(installed)} → {Versions.Short(TargetVersion())}");
                 break;
             case Kind.Verify:
-                ShowTag($"Verify · {Versions.Short(installed)}");
+                ShowTag(Tr.F("Verify · {0}", Versions.Short(installed)));
                 break;
             case Kind.Rebuild:
-                ShowTag($"Mods · {Versions.Short(installed)}");
+                ShowTag(Tr.F("Mods · {0}", Versions.Short(installed)));
                 break;
         }
-        BuildTitle.Text = k switch
+        BuildTitle.Text = Tr.T(k switch
         {
             Kind.Install => "Installing your game",
             Kind.Resume => "Continuing the install",
             Kind.Update => "Updating your game",
             Kind.Verify => "Verifying the files",
             _ => "Rebuilding for your mods",
-        };
-        BuildNote.Text = "Getting ready…";
+        });
+        BuildNote.Text = Tr.T("Getting ready…");
         CancelButton.IsEnabled = true;
-        CancelButton.Content = "Cancel";
+        CancelButton.Content = Tr.T("Cancel");
         rows.Clear();   // (a new run: nothing of the previous run's rows is kept)
         finished.Clear();
         MakeRows(withDownload: false, StepOrder);
@@ -684,7 +686,7 @@ public partial class MainWindow : Window
         var package = await EnsurePackage(k);
         if (package == null || closed) return;
         runPackage = package;
-        cat = Catalog.Load(package);
+        cat = Catalog.Load(package, Tr.InstallerLang);
         MakeRows(rows.ContainsKey("download"), StepOrder);   // (the step names in the package's own text)
         if (k == Kind.Update) ShowTag($"{Versions.Short(installed)} → {Versions.Short(package.Version)}");
         run = new InstallerRun(package, args);
@@ -701,7 +703,7 @@ public partial class MainWindow : Window
     {
         if (!latestChecked && latestTask != null)
         {
-            BuildNote.Text = "Looking for the latest version on GitHub…";
+            BuildNote.Text = Tr.T("Looking for the latest version on GitHub…");
             await latestTask;
         }
         var keep = k is Kind.Verify or Kind.Rebuild;
@@ -711,10 +713,10 @@ public partial class MainWindow : Window
         {
             if (have != null) return have;
             clock.Stop();
-            ShowProblem("No setup package",
-                        $"This PC has no TotK Recomp setup package and the releases of {settings.RepoName} did not answer.\n\n" +
+            ShowProblem(Tr.T("No setup package"),
+                        Tr.F("This PC has no TotK Recomp setup package and the releases of {0} did not answer.\n\n" +
                         "Check the connection and try again, or download TotK-Setup-<version>-windows.zip from the releases page and unpack it " +
-                        $"into a \"setup\" folder next to this launcher ({AppContext.BaseDirectory}).");
+                        "into a \"setup\" folder next to this launcher ({1}).", settings.RepoName, AppContext.BaseDirectory));
             return null;
         }
         var release = latest!;
@@ -733,7 +735,7 @@ public partial class MainWindow : Window
                 n => Dispatcher.BeginInvoke(() => { downloadNote = n; AddLog(n); rows.GetValueOrDefault("download")?.Detail(n); }),
                 token), token);
             rows["download"].Done();
-            rows["download"].Detail($"Package {release.Tag} ready");
+            rows["download"].Detail(Tr.F("Package {0} ready", release.Tag));
             Finish("download");
             localPackage = SetupPackage.Newest();
             return package;
@@ -753,12 +755,12 @@ public partial class MainWindow : Window
             if (have != null && k is Kind.Install or Kind.Resume)
             {
                 // (installing with the package this PC already has beats stopping)
-                rows["download"].Detail($"Failed ({x.Message}): using package {Versions.Short(have.Version)} from this PC");
+                rows["download"].Detail(Tr.F("Failed ({0}): using package {1} from this PC", x.Message, Versions.Short(have.Version)));
                 return have;
             }
             clock.Stop();
-            ShowProblem("The setup package could not be downloaded",
-                        x.Message + "\n\nNothing was changed in the game folder. Try again in a few minutes, or download the zip from the releases page.");
+            ShowProblem(Tr.T("The setup package could not be downloaded"),
+                        x.Message + Tr.T("\n\nNothing was changed in the game folder. Try again in a few minutes, or download the zip from the releases page."));
             return null;
         }
         finally
@@ -776,7 +778,7 @@ public partial class MainWindow : Window
     }
 
     string StepName(string id) =>
-        id != "download" && cat.Has("step." + id) ? cat.Text("step." + id) : StepNames.TryGetValue(id, out var n) ? n : id;
+        id != "download" && Tr.InstallerLang == Tr.Code && cat.Has("step." + id) ? cat.Text("step." + id) : StepNames.TryGetValue(id, out var n) ? Tr.T(n) : id;
 
     /// The rows of the steps; rows that already exist keep their state
     void MakeRows(bool withDownload, IEnumerable<string> steps)
@@ -842,7 +844,7 @@ public partial class MainWindow : Window
                     var ids = steps.EnumerateArray().Select(s => s.GetString() ?? "").Where(s => s.Length > 0).ToList();
                     if (!ids.SequenceEqual(order.Where(id => id != "download"))) MakeRows(rows.ContainsKey("download"), ids);
                 }
-                if (Str(e, "mode") == "update" && kind is Kind.Install or Kind.Resume) BuildTitle.Text = "Updating your game";
+                if (Str(e, "mode") == "update" && kind is Kind.Install or Kind.Resume) BuildTitle.Text = Tr.T("Updating your game");
                 break;
             case "plan":
                 if (e.TryGetProperty("skip", out var skip) && skip.ValueKind == JsonValueKind.Object)
@@ -914,9 +916,9 @@ public partial class MainWindow : Window
     static string Amount(double done, double total, string unit) => unit switch
     {
         "bytes" => string.Format(CultureInfo.InvariantCulture, "{0:0.0} / {1:0.0} GB", done / 1e9, total / 1e9),
-        "objects" => $"{done:0} / {total:0} files",
+        "objects" => Tr.F("{0:0} / {1:0} files", done, total),
         "shaders" => $"{done:0} / {total:0} shaders",
-        "chunks" => $"{done:0} / {total:0} parts",
+        "chunks" => Tr.F("{0:0} / {1:0} parts", done, total),
         _ => $"{done:0} / {total:0} {unit}".TrimEnd(),
     };
 
@@ -974,14 +976,14 @@ public partial class MainWindow : Window
     {
         foreach (var r in rows.Values) r.Tick();
         if (run == null && download == null) return;
-        var hint = current switch
+        var hint = Tr.T(current switch
         {
             "download" => "downloading the setup package",
             "compile" => "compiling is the longest step",
             "prepare" => "the shaders are ready before you play",
             _ => "you can keep using your PC",
-        };
-        BuildNote.Text = $"Elapsed {Clock(elapsed.Elapsed)} · {hint}";
+        });
+        BuildNote.Text = Tr.F("Elapsed {0} · {1}", Clock(elapsed.Elapsed), hint);
     }
 
     static string Clock(TimeSpan t) => $"{(int)t.TotalMinutes}:{t.Seconds:00}";
@@ -1016,9 +1018,9 @@ public partial class MainWindow : Window
                 break;
             default:
                 var (id, ps) = error ?? ("ui.process_died", (JsonElement?)null);
-                var text = cat.Has(id) ? cat.Text(id, ps) : $"The installer stopped unexpectedly (exit code {code}).";
-                if (!string.IsNullOrEmpty(logPath)) text += $"\n\nLog file: {logPath}";
-                ShowProblem(kind switch { Kind.Update => "The update stopped", Kind.Verify => "The verification stopped", Kind.Rebuild => "The rebuild stopped", _ => "The install stopped" },
+                var text = cat.Has(id) ? cat.Text(id, ps) : Tr.F("The installer stopped unexpectedly (exit code {0}).", code);
+                if (!string.IsNullOrEmpty(logPath)) text += Tr.F("\n\nLog file: {0}", logPath);
+                ShowProblem(Tr.T(kind switch { Kind.Update => "The update stopped", Kind.Verify => "The verification stopped", Kind.Rebuild => "The rebuild stopped", _ => "The install stopped" }),
                             text);
                 break;
         }
@@ -1041,9 +1043,9 @@ public partial class MainWindow : Window
             return;
         }
         SetStep(2);
-        ReadyTitle.Text = kind switch { Kind.Update => "Your game was updated", Kind.Verify => "The files were verified", _ => "Your game is ready" };
-        var verb = kind switch { Kind.Update => "Updated", Kind.Verify => "Verified", _ => "Installed" };
-        ReadyNote.Text = $"{verb} in {Span(elapsed.Elapsed)} · TotK Recomp {Versions.Short(runRelease ?? runPackage?.Version)} · {runDest}";
+        ReadyTitle.Text = Tr.T(kind switch { Kind.Update => "Your game was updated", Kind.Verify => "The files were verified", _ => "Your game is ready" });
+        var verb = Tr.T(kind switch { Kind.Update => "Updated", Kind.Verify => "Verified", _ => "Installed" });
+        ReadyNote.Text = Tr.F("{0} in {1} · TotK Recomp {2} · {3}", verb, Span(elapsed.Elapsed), Versions.Short(runRelease ?? runPackage?.Version), runDest);
         Shortcuts.Make(runDest, DesktopTick.IsChecked == true, StartTick.IsChecked == true);
         if (Shortcuts.Error != null) AddLog("shortcut not written: " + Shortcuts.Error);
         ShowPage(ReadyPage);
@@ -1053,8 +1055,8 @@ public partial class MainWindow : Window
     {
         if (kind == Kind.Rebuild)
         {
-            ShowProblem("The rebuild was cancelled", "Code mods and ExeFS patches stay out of the game until the next rebuild. " +
-                        "The game can start with the code it already has.", head: "Cancelled");
+            ShowProblem(Tr.T("The rebuild was cancelled"), Tr.T("Code mods and ExeFS patches stay out of the game until the next rebuild. " +
+                        "The game can start with the code it already has."), head: Tr.T("Cancelled"));
             return;
         }
         if (launchFolder.Length > 0 && kind is Kind.Update or Kind.Verify)
@@ -1088,7 +1090,7 @@ public partial class MainWindow : Window
         var show = ShowLog.IsChecked == true;
         Log.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
         StepCard.Visibility = show ? Visibility.Collapsed : Visibility.Visible;
-        ShowLog.Content = show ? "Hide details" : "Show details";
+        ShowLog.Content = Tr.T(show ? "Hide details" : "Show details");
         if (show)
         {
             Log.Text = log.ToString();
@@ -1099,7 +1101,7 @@ public partial class MainWindow : Window
     void CancelRun(object sender, RoutedEventArgs e)
     {
         CancelButton.IsEnabled = false;
-        CancelButton.Content = "Cancelling…";
+        CancelButton.Content = Tr.T("Cancelling…");
         download?.Cancel();
         run?.Cancel();
     }
@@ -1125,16 +1127,16 @@ public partial class MainWindow : Window
     {
         lastFailure = text;
         ProblemTitle.Text = title;
-        ProblemHead.Text = head ?? "What went wrong";
+        ProblemHead.Text = head ?? Tr.T("What went wrong");
         ProblemText.Text = text;
         ProblemSteps.Children.Clear();
         ProblemSub.Text = kind == Kind.Rebuild
-            ? "The game keeps the code it already had."
-            : "Finished steps are kept: trying again continues where it stopped.";
+            ? Tr.T("The game keeps the code it already had.")
+            : Tr.T("Finished steps are kept: trying again continues where it stopped.");
         PlayAnyway.Visibility = kind is Kind.Rebuild or Kind.Update or Kind.Verify && File.Exists(Installed.GameExe(runDest))
             ? Visibility.Visible : Visibility.Collapsed;
-        ProblemDetails.Content = "Show details";
-        CopyReport.Content = "Copy for a bug report";
+        ProblemDetails.Content = Tr.T("Show details");
+        CopyReport.Content = Tr.T("Copy for a bug report");
         if (kind is Kind.Install or Kind.Resume) SetStep(1);
         ShowPage(ProblemPage);
     }
@@ -1157,7 +1159,7 @@ public partial class MainWindow : Window
         var text = $"Ultrahand Launcher {typeof(MainWindow).Assembly.GetName().Version} · package {runPackage?.Version ?? "?"} · " +
                    $"Windows {Environment.OSVersion.Version}\n{ProblemTitle.Text}: {lastFailure}\n\n" +
                    string.Join("\n", lines.Skip(Math.Max(0, lines.Length - 200)));
-        try { Clipboard.SetText(text); CopyReport.Content = "Copied"; } catch (Exception) { }
+        try { Clipboard.SetText(text); CopyReport.Content = Tr.T("Copied"); } catch (Exception) { }
     }
 
     void Back(object sender, RoutedEventArgs e)
@@ -1182,7 +1184,7 @@ public partial class MainWindow : Window
     void OnClosing(object? sender, CancelEventArgs e)
     {
         if (closing || run == null && download == null) return;
-        if (MessageBox.Show(this, "The install is still running. Cancel it and close?", "Ultrahand Launcher", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
+        if (MessageBox.Show(this, Tr.T("The install is still running. Cancel it and close?"), "Ultrahand Launcher", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
         {
             e.Cancel = true;
             return;

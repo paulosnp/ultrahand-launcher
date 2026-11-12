@@ -118,7 +118,7 @@ sealed class StageRow
         title.Foreground = Res("TextDim");
         title.FontWeight = FontWeights.Medium;
         timer.Text = "";
-        Detail(reason == "current" ? "Already done: nothing changed" : "Not needed");
+        Detail(Tr.T(reason == "current" ? "Already done: nothing changed" : "Not needed"));
     }
 
     public void Stopped()

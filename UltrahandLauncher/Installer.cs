@@ -211,7 +211,7 @@ static class GameLanguages
 {
     public sealed record Item(string Code, string Name)
     {
-        public override string ToString() => Name;
+        public override string ToString() => Tr.T(Name);
     }
 
     public static readonly Item[] All =

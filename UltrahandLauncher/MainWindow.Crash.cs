@@ -24,7 +24,7 @@ public partial class MainWindow
         }
         catch (Exception x)
         {
-            MessageBox.Show(this, $"The game could not be started: {x.Message}", "Ultrahand Launcher");
+            MessageBox.Show(this, Tr.F("The game could not be started: {0}", x.Message), "Ultrahand Launcher");
             return;
         }
         if (game == null)
@@ -68,18 +68,18 @@ public partial class MainWindow
         catch (Exception) { }
         var fatal = lines.LastOrDefault(l => l.StartsWith("FATAL"));
         var shown = code is < 0 or > 0xFFFF ? $"0x{(uint)code:X8}" : code.ToString();
-        CrashTitle.Text = fatal != null || code == 71 ? "The game crashed" : "The game stopped";
-        CrashSub.Text = $"It closed with exit code {shown} after {Span(DateTime.Now - started)}. " +
-                        (lines.Length == 0 ? $"No log was found at {logPath}."
-                         : fresh ? "The end of its log is below."
-                         : "The log below was not written in this run, so it is from an earlier one.");
-        CrashSummary.Text = fatal ?? $"No FATAL line in the log; the game exited with code {shown}.";
+        CrashTitle.Text = Tr.T(fatal != null || code == 71 ? "The game crashed" : "The game stopped");
+        CrashSub.Text = Tr.F("It closed with exit code {0} after {1}. ", shown, Span(DateTime.Now - started)) +
+                        (lines.Length == 0 ? Tr.F("No log was found at {0}.", logPath)
+                         : fresh ? Tr.T("The end of its log is below.")
+                         : Tr.T("The log below was not written in this run, so it is from an earlier one."));
+        CrashSummary.Text = fatal ?? Tr.F("No FATAL line in the log; the game exited with code {0}.", shown);
         var tail = lines.Skip(Math.Max(0, lines.Length - 300)).ToArray();
         CrashLog.Text = string.Join("\n", tail);
         crashReport = $"Ultrahand Launcher {LauncherUpdate.Current} · TotK Recomp {Versions.Short(Installed.Release(folder))} · " +
                       $"Windows {Environment.OSVersion.Version}\nThe game exited with code {shown}\n{fatal}\n\n" +
                       string.Join("\n", lines.Skip(Math.Max(0, lines.Length - 200)));
-        CrashCopy.Content = "Copy for a bug report";
+        CrashCopy.Content = Tr.T("Copy for a bug report");
         Stepper.Visibility = Visibility.Collapsed;
         VersionTag.Visibility = Visibility.Collapsed;
         ShowPage(CrashPage);
@@ -97,7 +97,7 @@ public partial class MainWindow
         try
         {
             Clipboard.SetText(crashReport);
-            CrashCopy.Content = "Copied";
+            CrashCopy.Content = Tr.T("Copied");
         }
         catch (Exception) { }
     }

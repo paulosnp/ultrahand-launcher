@@ -2,6 +2,15 @@
 
 Each release's notes on GitHub come from its section here (`## X.Y.Z`), so add a section before tagging `launcher-vX.Y.Z`.
 
+## 0.1.5
+
+- The launcher speaks **Português (Brasil)** and **Español** as well as English. It follows the Windows display language, or
+  the one picked in Settings > Launcher > General (it applies after a restart, with a Restart now button). The game settings
+  use the names of the game's own Portuguese menu. The TotK Recomp installer's own messages come in Portuguese or English, as
+  it has no Spanish.
+- **What's new**: the first start after a launcher update shows what changed since the version you had, with a link to the
+  full release notes on GitHub. It can be turned off in the popup or in Settings > Launcher > General.
+
 ## 0.1.4
 
 - **Play starts the game the way a double click in Explorer does** (through the Windows shell). Before, the launcher started

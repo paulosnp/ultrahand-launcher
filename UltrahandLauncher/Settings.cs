@@ -21,6 +21,12 @@ sealed class Settings
     public bool StartShortcut { get; set; } = true;
     /// The launcher's own shortcuts were written once (the first run of the installed copy); a shortcut the player deleted stays deleted
     public bool LauncherShortcuts { get; set; }
+    /// The launcher's language: en, pt-BR or es; empty for the Windows display language (Localization.cs)
+    public string? UiLang { get; set; }
+    /// After a launcher update, show what changed (ReleaseNotes.cs)
+    public bool ShowReleaseNotes { get; set; } = true;
+    /// The launcher version the player last saw the notes of; null before the first run with release notes
+    public string? LastSeenVersion { get; set; }
     /// owner/repo the releases come from (TOTK_LAUNCHER_REPO takes precedence)
     public string? Repo { get; set; }
 

@@ -97,7 +97,7 @@
                   <Button Grid.Row="0" Grid.Column="2" Style="{StaticResource Btn}" Margin="10,0,0,0" Content="Browse" Tag="base" Click="BrowseFile"/>
 
                   <StackPanel Grid.Row="1" VerticalAlignment="Center">
-                    <TextBlock Text="Update" FontWeight="SemiBold"/>
+                    <TextBlock Text="Game update" FontWeight="SemiBold"/>
                     <TextBlock Style="{StaticResource Tiny}" Text="1.1.0, 1.2.1 or 1.4.3 (NSP or NSZ)"/>
                   </StackPanel>
                   <TextBox x:Name="UpdatePath" Grid.Row="1" Grid.Column="1" Style="{StaticResource PathBox}" Margin="0,6" TextChanged="PathsChanged"/>
@@ -374,6 +374,29 @@
           </Grid>
         </Grid>
       </Grid>
+    </Grid>
+
+    <!-- what's new: the first start after a launcher update (MainWindow.Notes.cs) -->
+    <Grid x:Name="NotesOverlay" Panel.ZIndex="8" Visibility="Collapsed" Background="#B3000000">
+      <Border Width="580" MaxHeight="460" Background="{StaticResource Popup}" BorderBrush="{StaticResource LineStrong}" BorderThickness="1"
+              CornerRadius="10" Padding="26,22" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Grid>
+          <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+          <StackPanel>
+            <TextBlock x:Name="NotesTitle" Style="{StaticResource H1}" FontSize="21" TextWrapping="Wrap"/>
+            <TextBlock x:Name="NotesSub" Style="{StaticResource Muted}" Margin="0,4,0,0"/>
+          </StackPanel>
+          <ScrollViewer Grid.Row="1" Margin="0,16,0,18" VerticalScrollBarVisibility="Auto">
+            <TextBlock x:Name="NotesText" Style="{StaticResource Muted}" FontSize="13" LineHeight="20" Margin="0,0,12,0"/>
+          </ScrollViewer>
+          <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+            <CheckBox x:Name="NotesOff" Style="{StaticResource Check}" VerticalAlignment="Center" Content="Don't show this after updates"/>
+            <Button Grid.Column="1" Style="{StaticResource Btn}" Margin="12,0,10,0" Content="Full release notes" Click="NotesFullClick"/>
+            <Button Grid.Column="2" Style="{StaticResource BtnAccent}" Content="OK" Click="NotesOkClick"/>
+          </Grid>
+        </Grid>
+      </Border>
     </Grid>
 
     <!-- minimize and close, above everything -->

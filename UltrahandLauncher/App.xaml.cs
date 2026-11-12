@@ -21,6 +21,7 @@ public partial class App : Application
             return;
         }
         LauncherUpdate.CleanUp();
+        Tr.Use(Settings.Load().UiLang);
         base.OnStartup(e);
     }
 

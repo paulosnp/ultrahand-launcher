@@ -16,6 +16,11 @@ Download it, open it, pick your game files: it installs the game, keeps it up to
   `Documents\Ultrahand Launcher\Save backups`), the shortcuts and the launcher's version.
 - **Shows what went wrong**: while the game runs the launcher waits in the background; if the game closes with an error it comes
   back with the end of `logs\totk.log` and the crash line, ready to copy into a bug report.
+- **English, Português (Brasil) and Español**, following the Windows language or the one picked in the settings. After an
+  update, it shows what changed.
+
+Translations live in `UltrahandLauncher/Translations.cs`, keyed by the English text; `powershell -File tools\check-translations.ps1`
+lists any text without one.
 - **Rebuilds for code mods**: it writes `build-cache\rebuild.txt` pointing to itself, so `totk.exe` opens the launcher when a mod
   needs new code.
 
