@@ -7,3 +7,5 @@ The launcher's code is under this repository's [MIT license](LICENSE).
 - **Inter** font (`UltrahandLauncher/Fonts/*.ttf`): SIL Open Font License 1.1, see `UltrahandLauncher/Fonts/Inter-LICENSE.txt`.
 - **Ultrahand icon** (`UltrahandLauncher/Images/ultrahand.*`): artwork from The Legend of Zelda: Tears of the Kingdom, © Nintendo.
   Used in a free, non-commercial fan project; this project is not affiliated with or endorsed by Nintendo.
+- **Steam library art** (cover, banner, logo, icon): community uploads on [SteamGridDB](https://www.steamgriddb.com), downloaded by
+  **Add the game to Steam** into the user's Steam folder. They are not included in this repository or in the launcher.

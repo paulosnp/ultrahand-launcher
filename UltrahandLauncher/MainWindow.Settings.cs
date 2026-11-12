@@ -403,6 +403,42 @@ public partial class MainWindow
         SettingsRows.Children.Add(RowOf(Tr.T("Start menu shortcut"), Tr.T("Ultrahand Launcher in the Start menu."),
             Toggle(settings.StartShortcut, v => Shortcut(false, v)), true));
 
+        Heading("Steam");
+        var steamFound = SteamImport.SteamDir() != null;
+        var inSteam = folder != null && steamFound && SteamImport.Has(folder);
+        var steamButton = SmallButton("Add to Steam", "BtnAccent");
+        if (inSteam) steamButton.Content = Tr.T("Update in Steam");
+        steamButton.IsEnabled = folder != null && steamFound;
+        var steamStatus = new TextBlock { Style = St("Tiny"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 6, 0, 0),
+                                          Visibility = Visibility.Collapsed };
+        steamButton.Click += async (_, _) =>
+        {
+            steamButton.IsEnabled = false;
+            steamStatus.Visibility = Visibility.Visible;
+            steamStatus.Foreground = Br("TextDim");
+            try
+            {
+                var failed = await SteamImport.Add(folder!, text => steamStatus.Text = text);
+                steamStatus.Text = failed == 0
+                    ? Tr.T("Done: the game is in your Steam library, with its pictures.")
+                    : Tr.F("The game is in your Steam library, but {0} of its pictures could not be downloaded. Try again later.", failed);
+                steamStatus.Foreground = Br(failed == 0 ? "Ok" : "AccentLight");
+                steamButton.Content = Tr.T("Update in Steam");
+            }
+            catch (Exception x)
+            {
+                steamStatus.Text = Tr.F("Could not add the game to Steam: {0}", x.Message);
+                steamStatus.Foreground = Br("Bad");
+            }
+            steamButton.IsEnabled = true;
+        };
+        SettingsRows.Children.Add(RowOf(Tr.T("Add the game to Steam"),
+            !steamFound ? Tr.T("Steam was not found on this PC.")
+            : folder == null ? Tr.T("Install the game first.")
+            : Tr.T("Adds the game to your Steam library as a non-Steam game, with a cover, banner, logo and icon from SteamGridDB. Play " +
+                   "in Steam starts totk.exe. Steam is closed while the launcher writes its list, and opened again after."),
+            steamButton, true, steamStatus));
+
         Heading("Updates");
         SettingsRows.Children.Add(RowOf(Tr.T("Show what's new after an update"),
             Tr.T("The first start after a launcher update shows its release notes, with a link to the full notes on GitHub."),

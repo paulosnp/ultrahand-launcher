@@ -2,6 +2,14 @@
 
 Each release's notes on GitHub come from its section here (`## X.Y.Z`), so add a section before tagging `launcher-vX.Y.Z`.
 
+## 0.1.6
+
+- **Add the game to Steam** (Settings > Launcher > General): adds TotK Recomp to your Steam library as a non-Steam game that
+  starts `totk.exe`, with a cover, banner, logo and icon from [SteamGridDB](https://www.steamgriddb.com), downloaded when you
+  click (they are not part of the launcher). Steam is closed while the launcher writes its list of non-Steam games and opened
+  again after; the previous list is kept as `shortcuts.vdf.bak`. If the game is already there (added by hand or by an earlier
+  import), that entry is updated instead of a second one being added, keeping its name and play time.
+
 ## 0.1.5
 
 - The launcher speaks **Português (Brasil)** and **Español** as well as English. It follows the Windows display language, or

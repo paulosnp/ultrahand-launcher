@@ -153,6 +153,27 @@ static class Translations
         ["Setup package {0} on this PC"] = ("Pacote de instalação {0} neste PC", "Paquete de instalación {0} en esta PC"),
         ["Setup package {0} on this PC. Looking for newer versions in the GitHub releases…"] = ("Pacote de instalação {0} neste PC. Procurando versões novas nas releases do GitHub…", "Paquete de instalación {0} en esta PC. Buscando versiones nuevas en GitHub…"),
         ["Shortcuts"] = ("Atalhos", "Accesos directos"),
+        ["Steam"] = ("Steam", "Steam"),
+        ["Add to Steam"] = ("Adicionar à Steam", "Añadir a Steam"),
+        ["Update in Steam"] = ("Atualizar na Steam", "Actualizar en Steam"),
+        ["Add the game to Steam"] = ("Adicionar o jogo à Steam", "Añadir el juego a Steam"),
+        ["Install the game first."] = ("Instale o jogo primeiro.", "Instala el juego primero."),
+        ["Adds the game to your Steam library as a non-Steam game, with a cover, banner, logo and icon from SteamGridDB. Play in Steam starts totk.exe. Steam is closed while the launcher writes its list, and opened again after."] =
+            ("Adiciona o jogo à sua biblioteca da Steam como jogo não Steam, com capa, banner, logo e ícone do SteamGridDB. Jogar na Steam abre o totk.exe. A Steam é fechada enquanto o launcher grava a lista dela e aberta de novo depois.",
+             "Añade el juego a tu biblioteca de Steam como juego ajeno a Steam, con portada, banner, logo e icono de SteamGridDB. Jugar en Steam abre totk.exe. Steam se cierra mientras el launcher escribe su lista y se vuelve a abrir después."),
+        ["Steam was not found on this PC."] = ("A Steam não foi encontrada neste PC.", "No se encontró Steam en esta PC."),
+        ["No Steam account was found. Open Steam and sign in once."] =
+            ("Nenhuma conta da Steam foi encontrada. Abra a Steam e entre uma vez.", "No se encontró ninguna cuenta de Steam. Abre Steam e inicia sesión una vez."),
+        ["Closing Steam…"] = ("Fechando a Steam…", "Cerrando Steam…"),
+        ["Steam did not close. Close it and try again."] = ("A Steam não fechou. Feche-a e tente de novo.", "Steam no se cerró. Ciérralo e inténtalo de nuevo."),
+        ["Adding the game…"] = ("Adicionando o jogo…", "Añadiendo el juego…"),
+        ["Downloading the pictures…"] = ("Baixando as imagens…", "Descargando las imágenes…"),
+        ["Done: the game is in your Steam library, with its pictures."] =
+            ("Pronto: o jogo está na sua biblioteca da Steam, com as imagens.", "Listo: el juego está en tu biblioteca de Steam, con sus imágenes."),
+        ["The game is in your Steam library, but {0} of its pictures could not be downloaded. Try again later."] =
+            ("O jogo está na sua biblioteca da Steam, mas {0} das imagens não puderam ser baixadas. Tente de novo mais tarde.",
+             "El juego está en tu biblioteca de Steam, pero {0} de sus imágenes no se pudieron descargar. Inténtalo más tarde."),
+        ["Could not add the game to Steam: {0}"] = ("Não foi possível adicionar o jogo à Steam: {0}", "No se pudo añadir el juego a Steam: {0}"),
         ["Show details"] = ("Mostrar detalhes", "Mostrar detalles"),
         ["Show what's new after an update"] = ("Mostrar as novidades depois de atualizar", "Mostrar las novedades después de actualizar"),
         ["Start menu shortcut"] = ("Atalho no Menu Iniciar", "Acceso directo en el menú Inicio"),

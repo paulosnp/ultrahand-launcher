@@ -13,7 +13,8 @@ Download it, open it, pick your game files: it installs the game, keeps it up to
 - **Updates itself** when this repository publishes a launcher release.
 - **Settings** behind the gear. Game: the Screen, Game, Sound, Controls and Menu settings of the game's own menu (Esc / F1),
   written to the game's `totk.ini` the way the game writes it. Launcher: save backups (zips of the save folder in
-  `Documents\Ultrahand Launcher\Save backups`), the shortcuts and the launcher's version.
+  `Documents\Ultrahand Launcher\Save backups`), the shortcuts, **Add the game to Steam** (a non-Steam game entry that starts
+  `totk.exe`, with art from SteamGridDB downloaded at that moment) and the launcher's version.
 - **Shows what went wrong**: while the game runs the launcher waits in the background; if the game closes with an error it comes
   back with the end of `logs\totk.log` and the crash line, ready to copy into a bug report.
 - **English, Português (Brasil) and Español**, following the Windows language or the one picked in the settings. After an
