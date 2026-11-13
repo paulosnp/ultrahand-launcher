@@ -99,7 +99,7 @@ static class Releases
         var folder = Path.Combine(SetupPackage.Store, string.Concat(release.Tag.Where(c => char.IsLetterOrDigit(c) || c is '.' or '-' or '_')));
         if (SetupPackage.At(folder) is { } ready) return ready;
 
-        var downloads = Path.Combine(Settings.Folder, "downloads");
+        var downloads = SetupPackage.DownloadDir;
         Directory.CreateDirectory(downloads);
         var zip = Path.Combine(downloads, release.AssetName);
         note(Tr.F("Downloading {0} ({1})", release.AssetName, release.SizeText));

@@ -2,6 +2,14 @@
 
 Each release's notes on GitHub come from its section here (`## X.Y.Z`), so add a section before tagging `launcher-vX.Y.Z`.
 
+## 0.1.7
+
+- **Downloads folder** ([#2](https://github.com/paulosnp/ultrahand-launcher/issues/2)): the TotK Recomp setup package (about
+  2 GB once unpacked) no longer has to live on drive C. Pick its folder with **Change folder** on the install page or in
+  Settings > Launcher > General; the packages already downloaded move with it (a copy then a delete when the new folder is on
+  another drive).
+- The **Update launcher** button no longer covers the install steps in the title bar.
+
 ## 0.1.6
 
 - **Add the game to Steam** (Settings > Launcher > General): adds TotK Recomp to your Steam library as a non-Steam game that

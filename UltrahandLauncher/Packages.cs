@@ -16,8 +16,51 @@ sealed record SetupPackage(string Root, string Version)
         }
     }
 
-    /// Where the launcher keeps the packages it downloads: %LOCALAPPDATA%\TotK Recomp\setups\&lt;tag&gt;
-    public static string Store => Path.Combine(Settings.Folder, "setups");
+    /// The downloads folder picked in the settings, else %LOCALAPPDATA%\TotK Recomp
+    public static string Home => Settings.Load().Downloads is { Length: > 0 } d ? d : Settings.Folder;
+    /// What Settings.Downloads keeps for a folder: null for the default one
+    public static string? SettingFor(string home) =>
+        Path.TrimEndingDirectorySeparator(Path.GetFullPath(home)) is var full && full.Equals(Settings.Folder, StringComparison.OrdinalIgnoreCase) ? null : full;
+    /// Where the launcher keeps the packages it downloads: Home\setups\&lt;tag&gt;
+    public static string Store => Path.Combine(Home, "setups");
+    /// Where the zip goes while it downloads
+    public static string DownloadDir => Path.Combine(Home, "downloads");
+    static string DefaultStore => Path.Combine(Settings.Folder, "setups");
+
+    /// Moves the downloaded packages from Home to newHome (a rename on the same drive, else a copy and delete); an unfinished
+    /// download is dropped. The caller then saves newHome as Settings.Downloads.
+    public static void MoveHome(string newHome, Action<string> note)
+    {
+        var from = Path.GetFullPath(Store).TrimEnd('\\') + "\\";
+        var to = Path.GetFullPath(Path.Combine(newHome, "setups")).TrimEnd('\\') + "\\";
+        if (from.Equals(to, StringComparison.OrdinalIgnoreCase)) return;
+        if (to.StartsWith(from, StringComparison.OrdinalIgnoreCase) || from.StartsWith(to, StringComparison.OrdinalIgnoreCase))
+            throw new IOException(Tr.T("Pick a folder outside the current downloads folder."));
+        Directory.CreateDirectory(to);
+        if (Directory.Exists(from))
+            foreach (var dir in Directory.GetDirectories(from))
+            {
+                var target = Path.Combine(to, Path.GetFileName(dir));
+                if (dir.EndsWith(".part", StringComparison.OrdinalIgnoreCase) || Directory.Exists(target)) { Directory.Delete(dir, true); continue; }
+                note(Tr.F("Moving {0}…", Path.GetFileName(dir)));
+                if (string.Equals(Path.GetPathRoot(dir), Path.GetPathRoot(to), StringComparison.OrdinalIgnoreCase))
+                    Directory.Move(dir, target);
+                else
+                {
+                    Copy(dir, target + ".part");
+                    Directory.Move(target + ".part", target);
+                    Directory.Delete(dir, true);
+                }
+            }
+        try { if (Directory.Exists(DownloadDir)) Directory.Delete(DownloadDir, true); } catch (Exception) { }
+
+        static void Copy(string source, string target)
+        {
+            Directory.CreateDirectory(target);
+            foreach (var file in Directory.GetFiles(source)) File.Copy(file, Path.Combine(target, Path.GetFileName(file)), true);
+            foreach (var sub in Directory.GetDirectories(source)) Copy(sub, Path.Combine(target, Path.GetFileName(sub)));
+        }
+    }
 
     public static bool IsPackage(string dir) =>
         File.Exists(Path.Combine(dir, "installer", "__main__.py")) &&
@@ -46,13 +89,14 @@ sealed record SetupPackage(string Root, string Version)
         Add(here);
         Add(Path.GetDirectoryName(here));
         Add(Path.Combine(here, "setup"));
-        try
-        {
-            if (Directory.Exists(Store))
-                foreach (var dir in Directory.GetDirectories(Store))
-                    if (!dir.EndsWith(".part", StringComparison.OrdinalIgnoreCase)) Add(dir);
-        }
-        catch (Exception) { }
+        foreach (var store in new[] { Store, DefaultStore })   // (the default too: packages left there by a move that failed)
+            try
+            {
+                if (Directory.Exists(store))
+                    foreach (var dir in Directory.GetDirectories(store))
+                        if (!dir.EndsWith(".part", StringComparison.OrdinalIgnoreCase)) Add(dir);
+            }
+            catch (Exception) { }
         return found;
     }
 

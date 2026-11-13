@@ -412,7 +412,8 @@ public partial class MainWindow : Window
                                (have != null ? Tr.F(" This PC has {0}.", Versions.Short(have.Version)) : "");
         else if (have != null)
             PackageNote.Text = Tr.F("Setup package {0} on this PC", Versions.Short(have.Version)) +
-                               (latest == null ? Tr.T(" (GitHub did not answer: newer versions could not be checked).") : Tr.T(", the latest version."));
+                               (latest == null ? Tr.T(" (GitHub did not answer: newer versions could not be checked).") : Tr.T(", the latest version.")) +
+                               "\n" + Tr.F("Downloads folder: {0}", SetupPackage.Home);
         else
         {
             PackageNote.Text = Tr.F("No setup package on this PC and GitHub did not answer ({0}). Check the connection, or unpack a " +

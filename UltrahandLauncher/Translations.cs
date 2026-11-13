@@ -154,6 +154,21 @@ static class Translations
         ["Setup package {0} on this PC. Looking for newer versions in the GitHub releases…"] = ("Pacote de instalação {0} neste PC. Procurando versões novas nas releases do GitHub…", "Paquete de instalación {0} en esta PC. Buscando versiones nuevas en GitHub…"),
         ["Shortcuts"] = ("Atalhos", "Accesos directos"),
         ["Steam"] = ("Steam", "Steam"),
+        ["Downloads"] = ("Downloads", "Descargas"),
+        ["Downloads folder"] = ("Pasta de downloads", "Carpeta de descargas"),
+        ["Downloads folder: {0}"] = ("Pasta de downloads: {0}", "Carpeta de descargas: {0}"),
+        ["Change folder"] = ("Mudar pasta", "Cambiar carpeta"),
+        ["Choose where the downloads go"] = ("Escolha onde ficam os downloads", "Elige dónde van las descargas"),
+        ["Moving {0}…"] = ("Movendo {0}…", "Moviendo {0}…"),
+        ["Pick a folder outside the current downloads folder."] =
+            ("Escolha uma pasta fora da pasta de downloads atual.", "Elige una carpeta fuera de la carpeta de descargas actual."),
+        ["The downloads folder could not be changed: {0}"] =
+            ("Não foi possível mudar a pasta de downloads: {0}", "No se pudo cambiar la carpeta de descargas: {0}"),
+        ["Wait for the install or update to finish first."] =
+            ("Espere a instalação ou a atualização terminar.", "Espera a que termine la instalación o la actualización."),
+        ["Where the TotK Recomp setup package is downloaded and kept (about 2 GB once unpacked). Changing it moves the packages already there."] =
+            ("Onde o pacote de instalação do TotK Recomp é baixado e guardado (cerca de 2 GB descompactado). Ao mudar, os pacotes que já estão lá são movidos.",
+             "Dónde se descarga y guarda el paquete de instalación de TotK Recomp (unos 2 GB descomprimido). Al cambiarla, los paquetes que ya están ahí se mueven."),
         ["Add to Steam"] = ("Adicionar à Steam", "Añadir a Steam"),
         ["Update in Steam"] = ("Atualizar na Steam", "Actualizar en Steam"),
         ["Add the game to Steam"] = ("Adicionar o jogo à Steam", "Añadir el juego a Steam"),

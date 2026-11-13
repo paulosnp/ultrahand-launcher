@@ -27,6 +27,8 @@ sealed class Settings
     public bool ShowReleaseNotes { get; set; } = true;
     /// The launcher version the player last saw the notes of; null before the first run with release notes
     public string? LastSeenVersion { get; set; }
+    /// Where setup packages are downloaded and kept (setups\, downloads\); empty for Folder (SetupPackage.Home)
+    public string? Downloads { get; set; }
     /// owner/repo the releases come from (TOTK_LAUNCHER_REPO takes precedence)
     public string? Repo { get; set; }
 

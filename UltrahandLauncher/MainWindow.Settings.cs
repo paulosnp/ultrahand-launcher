@@ -350,6 +350,51 @@ public partial class MainWindow
 
     // ================= Launcher: General =================
 
+    /// Picks a new downloads folder and moves the setup packages there (SetupPackage.MoveHome); note gets the progress and any
+    /// error. True when the folder changed.
+    async Task<bool> ChangeDownloads(Action<string> note)
+    {
+        if (run != null || download != null)
+        {
+            note(Tr.T("Wait for the install or update to finish first."));
+            return false;
+        }
+        if (PickFolder(Tr.T("Choose where the downloads go")) is not { } picked) return false;
+        BuildButton.IsEnabled = false;   // (no install while the package moves)
+        try
+        {
+            await Task.Run(() => SetupPackage.MoveHome(picked, text => Dispatcher.Invoke(() => note(text))));
+            settings.Downloads = SetupPackage.SettingFor(picked);
+            settings.Save();
+            note("");
+            return true;
+        }
+        catch (Exception x)
+        {
+            note(Tr.F("The downloads folder could not be changed: {0}", x.Message));
+            return false;
+        }
+        finally
+        {
+            localPackage = SetupPackage.Newest();
+            RefreshPackageNote();
+            Refresh();
+        }
+    }
+
+    async void ChangeDownloadsClick(object sender, RoutedEventArgs e)
+    {
+        DownloadsButton.IsEnabled = false;
+        string? error = null;
+        await ChangeDownloads(text => { PackageNote.Text = text; error = text; });   // (progress lines, then "" or the error)
+        DownloadsButton.IsEnabled = true;
+        if (!string.IsNullOrEmpty(error))
+        {
+            PackageNote.Text = error;
+            PackageNote.Foreground = Br("Bad");
+        }
+    }
+
     void ShowGeneralTab()
     {
         Note(Tr.F("Ultrahand Launcher {0}, installed in {1}.", LauncherUpdate.Current, App.InstallDir));
@@ -402,6 +447,26 @@ public partial class MainWindow
             Toggle(settings.DesktopShortcut, v => Shortcut(true, v)), false));
         SettingsRows.Children.Add(RowOf(Tr.T("Start menu shortcut"), Tr.T("Ultrahand Launcher in the Start menu."),
             Toggle(settings.StartShortcut, v => Shortcut(false, v)), true));
+
+        Heading("Downloads");
+        var downloadsButton = SmallButton("Change");
+        var downloadsStatus = new TextBlock { Style = St("Tiny"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 6, 0, 0),
+                                             Visibility = Visibility.Collapsed };
+        downloadsButton.Click += async (_, _) =>
+        {
+            downloadsButton.IsEnabled = false;
+            downloadsStatus.Visibility = Visibility.Visible;
+            downloadsStatus.Foreground = Br("TextDim");
+            downloadsStatus.Text = "";
+            var changed = await ChangeDownloads(text => downloadsStatus.Text = text);
+            downloadsButton.IsEnabled = true;
+            if (changed && launcherSection && SettingsPage.Visibility == Visibility.Visible) ShowTab(launcherTab);   // (shows the new folder)
+            else if (downloadsStatus.Text.Length == 0) downloadsStatus.Visibility = Visibility.Collapsed;
+            else downloadsStatus.Foreground = Br("Bad");
+        };
+        SettingsRows.Children.Add(RowOf(Tr.T("Downloads folder"),
+            SetupPackage.Home + "\n" + Tr.T("Where the TotK Recomp setup package is downloaded and kept (about 2 GB once unpacked). Changing it " +
+            "moves the packages already there."), downloadsButton, true, downloadsStatus));
 
         Heading("Steam");
         var steamFound = SteamImport.SteamDir() != null;

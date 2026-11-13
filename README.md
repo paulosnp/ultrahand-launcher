@@ -41,8 +41,9 @@ restarts. The game is not touched.
 
 1. Download `UltrahandLauncher.exe` from the [latest release](https://github.com/paulosnp/ultrahand-launcher/releases/latest) and
    open it. It installs itself and reopens; the downloaded file can then be deleted.
-2. Pick the game files, the install folder and the language, and click **Install the game**. The setup package (several hundred MB)
-   is downloaded to `%LOCALAPPDATA%\TotK Recomp\setups\<tag>`.
+2. Pick the game files, the install folder and the language, and click **Install the game**. The setup package (a download of
+   about 150 MB, about 2 GB once unpacked) goes to `%LOCALAPPDATA%\TotK Recomp\setups\<tag>`, or to the folder picked with
+   **Change folder** (also in Settings > Launcher > General).
 3. The **Ultrahand Launcher** shortcut on the Desktop and in the Start menu (written on the first run) opens the game folder.
 
 Command line:
