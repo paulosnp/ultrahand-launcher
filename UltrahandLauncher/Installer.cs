@@ -34,7 +34,8 @@ sealed class InstallerRun
         {
             try
             {
-                var si = new ProcessStartInfo(package.Python)
+                // (Linux: setsid makes the installer the leader of its own process group, so Cancel can signal the whole group)
+                var si = new ProcessStartInfo(Platform.Linux ? "setsid" : package.Python)
                 {
                     WorkingDirectory = package.Root,
                     UseShellExecute = false,
@@ -47,6 +48,12 @@ sealed class InstallerRun
                 si.Environment["PYTHONIOENCODING"] = "utf-8";
                 si.Environment["PYTHONUTF8"] = "1";
                 si.Environment["PYTHONUNBUFFERED"] = "1";
+                if (Platform.Linux)
+                {
+                    si.Environment["PYTHONDONTWRITEBYTECODE"] = "1";
+                    si.Environment["PYTHONNOUSERSITE"] = "1";   // (as the AppImage's AppRun: a user-installed "installer" package must not shadow the setup's)
+                    si.ArgumentList.Add(package.Python);
+                }
                 si.ArgumentList.Add("-m");
                 si.ArgumentList.Add("installer");
                 foreach (var a in args) si.ArgumentList.Add(a);
@@ -97,11 +104,23 @@ sealed class InstallerRun
         try
         {
             if (p.HasExited) return;
-            if (!ConsoleBreak.Send(p.Id)) { p.Kill(entireProcessTree: true); return; }
+            if (!(Platform.Linux ? Terminate(p.Id) : ConsoleBreak.Send(p.Id))) { p.Kill(entireProcessTree: true); return; }
             for (var i = 0; i < 600 && !p.HasExited; i++) await Task.Delay(100);
             if (!p.HasExited) p.Kill(entireProcessTree: true);
         }
         catch (Exception) { }
+    }
+
+    /// Linux: SIGTERM to the installer's process group, which installer/cli.py takes as a cancel, like Ctrl+Break on Windows
+    static bool Terminate(int pid)
+    {
+        try
+        {
+            using var kill = Process.Start(new ProcessStartInfo("kill") { ArgumentList = { "-TERM", "--", "-" + pid }, UseShellExecute = false });
+            kill!.WaitForExit();
+            return kill.ExitCode == 0;
+        }
+        catch (Exception) { return false; }
     }
 
     public void Kill()
@@ -180,7 +199,7 @@ sealed class Catalog
     public string Text(string id, JsonElement? parameters = null)
     {
         var text = Raw(id);
-        var values = new Dictionary<string, string> { ["game_exe"] = "totk.exe" };
+        var values = new Dictionary<string, string> { ["game_exe"] = Platform.GameExeName };
         if (parameters is { ValueKind: JsonValueKind.Object } ps)
             foreach (var p in ps.EnumerateObject()) values[p.Name] = Param(p.Name, p.Value);
         return Placeholder.Replace(text, m => values.TryGetValue(m.Groups[1].Value, out var v) ? v : m.Value);

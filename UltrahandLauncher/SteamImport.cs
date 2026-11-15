@@ -24,9 +24,29 @@ static class SteamImport
 
     public static string? SteamDir()
     {
-        var path = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "SteamPath", null) as string;
-        path = path?.Replace('/', '\\');
-        return path != null && File.Exists(Path.Combine(path, "steam.exe")) ? path : null;
+        if (OperatingSystem.IsWindows())
+        {
+            var path = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "SteamPath", null) as string;
+            path = path?.Replace('/', '\\');
+            return path != null && File.Exists(Path.Combine(path, "steam.exe")) ? path : null;
+        }
+        // Linux: the distribution's Steam, then the Flatpak one
+        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        return new[] { ".local/share/Steam", ".steam/steam", ".var/app/com.valvesoftware.Steam/.local/share/Steam" }
+            .Select(p => Path.Combine(home, p))
+            .FirstOrDefault(p => Directory.Exists(Path.Combine(p, "userdata")));
+    }
+
+    /// The command that reaches Steam: steam.exe in its folder on Windows, the steam (or flatpak) command on Linux
+    static ProcessStartInfo SteamCommand(string steamDir, string? argument)
+    {
+        ProcessStartInfo start;
+        if (OperatingSystem.IsWindows()) start = new ProcessStartInfo(Path.Combine(steamDir, "steam.exe"));
+        else if (steamDir.Contains("/.var/app/")) start = new ProcessStartInfo("flatpak") { ArgumentList = { "run", "com.valvesoftware.Steam" } };
+        else start = new ProcessStartInfo("steam");
+        start.UseShellExecute = false;
+        if (argument != null) start.ArgumentList.Add(argument);
+        return start;
     }
 
     /// The config folder of the Steam account used last (the one whose localconfig.vdf Steam wrote last)
@@ -65,7 +85,7 @@ static class SteamImport
         if (wasRunning)
         {
             note(Tr.T("Closing Steam…"));
-            Process.Start(new ProcessStartInfo(Path.Combine(steam, "steam.exe"), "-shutdown") { UseShellExecute = false });
+            Process.Start(SteamCommand(steam, "-shutdown"));
             for (var i = 0; i < 120 && Running(); i++) await Task.Delay(500);
             if (Running()) throw new InvalidOperationException(Tr.T("Steam did not close. Close it and try again."));
             await Task.Delay(1000);   // (its files are written by then; this is for the file handles)
@@ -88,7 +108,7 @@ static class SteamImport
         }
 
         if (wasRunning)
-            try { Process.Start(new ProcessStartInfo(Path.Combine(steam, "steam.exe")) { UseShellExecute = true }); } catch (Exception) { }
+            try { Process.Start(SteamCommand(steam, null)); } catch (Exception) { }
         return failed;
     }
 
@@ -120,7 +140,7 @@ static class SteamImport
             if (id == null) Set(entry, Vdf.Int, "appid", BitConverter.GetBytes(appId));
         }
         Set(entry, Vdf.String, "Exe", quoted);
-        Set(entry, Vdf.String, "StartDir", $"\"{Path.GetDirectoryName(exe)}\\\"");
+        Set(entry, Vdf.String, "StartDir", $"\"{Path.GetDirectoryName(exe)}{Path.DirectorySeparatorChar}\"");
         Set(entry, Vdf.String, "icon", Path.Combine(config, "grid", appId + "_icon.png"));
         foreach (var (key, value) in new[] { ("AllowDesktopConfig", 1), ("AllowOverlay", 1) })
             if (!entry.Children!.Any(n => n.Key.Equals(key, StringComparison.OrdinalIgnoreCase)))
@@ -142,7 +162,7 @@ static class SteamImport
 
     static bool SamePath(string a, string b)
     {
-        try { return string.Equals(Path.GetFullPath(a), Path.GetFullPath(b), StringComparison.OrdinalIgnoreCase); }
+        try { return string.Equals(Path.GetFullPath(a), Path.GetFullPath(b), Platform.PathCompare); }
         catch (Exception) { return false; }
     }
 

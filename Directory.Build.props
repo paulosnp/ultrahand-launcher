@@ -1,0 +1,6 @@
+<Project>
+  <!-- the version of both launchers (Windows and Linux); the release workflow sets it from the tag -->
+  <PropertyGroup>
+    <Version>0.1.8</Version>
+  </PropertyGroup>
+</Project>

@@ -8,9 +8,9 @@ public partial class App : Application
 {
     /// Where the launcher lives: the shortcuts and build-cache\rebuild.txt point here, so the downloaded .exe can be deleted
     public static string InstallDir =>
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "Ultrahand Launcher");
+        Platform.InstallDir;
 
-    public static string InstalledExe => Path.Combine(InstallDir, "UltrahandLauncher.exe");
+    public static string InstalledExe => Platform.InstalledExe;
 
     protected override void OnStartup(StartupEventArgs e)
     {

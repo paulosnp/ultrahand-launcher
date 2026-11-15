@@ -8,7 +8,7 @@ namespace Ultrahand;
 static class SaveBackup
 {
     public static string Folder =>
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Ultrahand Launcher", "Save backups");
+        Path.Combine(Platform.Documents, "Ultrahand Launcher", "Save backups");
 
     /// The profile folder: profile_dir from totk.ini (relative to the game folder), else profile next to totk.exe
     public static string ProfileDir(string gameFolder, TotkIni ini)

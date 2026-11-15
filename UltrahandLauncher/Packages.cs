@@ -11,8 +11,8 @@ sealed record SetupPackage(string Root, string Version)
     {
         get
         {
-            var py = Path.Combine(Root, "python", "python.exe");
-            return File.Exists(py) ? py : "python";   // (TOTK_SETUP_DIR pointing at a repository checkout: the Python on PATH)
+            var py = Platform.Linux ? Path.Combine(Root, "python", "bin", "python3") : Path.Combine(Root, "python", "python.exe");
+            return File.Exists(py) ? py : Platform.Linux ? "python3" : "python";   // (TOTK_SETUP_DIR pointing at a repository checkout: the Python on PATH)
         }
     }
 
@@ -64,7 +64,7 @@ sealed record SetupPackage(string Root, string Version)
 
     public static bool IsPackage(string dir) =>
         File.Exists(Path.Combine(dir, "installer", "__main__.py")) &&
-        (File.Exists(Path.Combine(dir, "python", "python.exe")) || File.Exists(Path.Combine(dir, ".git", "HEAD")) || File.Exists(Path.Combine(dir, "VERSION")));
+        (File.Exists(Path.Combine(dir, "python", "python.exe")) || File.Exists(Path.Combine(dir, "python", "bin", "python3")) || File.Exists(Path.Combine(dir, ".git", "HEAD")) || File.Exists(Path.Combine(dir, "VERSION")));
 
     public static SetupPackage? At(string? dir)
     {
@@ -159,7 +159,7 @@ static class Installed
         return doc != null && doc.RootElement.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
     }
 
-    public static string GameExe(string folder) => Path.Combine(folder, "totk.exe");
+    public static string GameExe(string folder) => Path.Combine(folder, Platform.GameExeName);
 
     public static bool HasDlss(string folder) => File.Exists(Path.Combine(folder, "nvngx_dlss.dll"));
 }

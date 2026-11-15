@@ -1,0 +1,160 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Ultrahand.App"
+             RequestedThemeVariant="Dark">
+
+  <!-- The palette of the Windows launcher (UltrahandLauncher/App.xaml): a warm dark page, the orange of the Ultrahand icon for
+       actions and a brighter orange for Play -->
+  <Application.Resources>
+    <SolidColorBrush x:Key="Bg" Color="#1B1512"/>
+    <SolidColorBrush x:Key="Surface" Color="#0FFFFFFF"/>
+    <SolidColorBrush x:Key="SurfaceHover" Color="#1AFFFFFF"/>
+    <SolidColorBrush x:Key="Line" Color="#1FFFFFFF"/>
+    <SolidColorBrush x:Key="LineStrong" Color="#38FFFFFF"/>
+    <SolidColorBrush x:Key="Text" Color="#F3EEEA"/>
+    <SolidColorBrush x:Key="TextDim" Color="#B8ACA4"/>
+    <SolidColorBrush x:Key="TextMuted" Color="#85776E"/>
+    <SolidColorBrush x:Key="Accent" Color="#D56636"/>
+    <SolidColorBrush x:Key="AccentHover" Color="#E2784A"/>
+    <SolidColorBrush x:Key="AccentSoft" Color="#2ED56636"/>
+    <SolidColorBrush x:Key="AccentLight" Color="#F4A47C"/>
+    <SolidColorBrush x:Key="AccentText" Color="#1E0B03"/>
+    <SolidColorBrush x:Key="Gold" Color="#F0874B"/>
+    <SolidColorBrush x:Key="GoldHover" Color="#F59A62"/>
+    <SolidColorBrush x:Key="GoldText" Color="#240C02"/>
+    <SolidColorBrush x:Key="Ok" Color="#5CCB8A"/>
+    <SolidColorBrush x:Key="OkSoft" Color="#2B5CCB8A"/>
+    <SolidColorBrush x:Key="Warn" Color="#E8B04B"/>
+    <SolidColorBrush x:Key="Bad" Color="#EC6F5E"/>
+    <SolidColorBrush x:Key="BadSoft" Color="#2BEC6F5E"/>
+    <FontFamily x:Key="Mono">DejaVu Sans Mono, Liberation Mono, Cascadia Mono, Consolas, monospace</FontFamily>
+    <!-- (the Fluent theme's accent: check boxes, the focus line of text boxes, the selected combo box item) -->
+    <Color x:Key="SystemAccentColor">#D56636</Color>
+    <Color x:Key="SystemAccentColorDark1">#C55A2D</Color>
+    <Color x:Key="SystemAccentColorLight1">#E2784A</Color>
+    <Color x:Key="SystemAccentColorLight2">#F4A47C</Color>
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme/>
+
+    <Style Selector="TextBlock.h1">
+      <Setter Property="FontSize" Value="26"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+    <Style Selector="TextBlock.lead">
+      <Setter Property="Foreground" Value="{StaticResource TextDim}"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+      <Setter Property="Margin" Value="0,8,0,0"/>
+    </Style>
+    <Style Selector="TextBlock.muted">
+      <Setter Property="Foreground" Value="{StaticResource TextDim}"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+    <Style Selector="TextBlock.tiny">
+      <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+      <Setter Property="FontSize" Value="12"/>
+    </Style>
+    <Style Selector="TextBlock.caps">
+      <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Margin" Value="0,18,0,8"/>
+    </Style>
+
+    <Style Selector="Border.panel">
+      <Setter Property="Background" Value="{StaticResource Surface}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="8"/>
+    </Style>
+
+    <!-- buttons: plain, accent (the main action of a page), play, and link (text only) -->
+    <Style Selector="Button">
+      <Setter Property="Height" Value="40"/>
+      <Setter Property="Padding" Value="18,0"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Foreground" Value="{StaticResource Text}"/>
+      <Setter Property="Background" Value="{StaticResource Surface}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource LineStrong}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource SurfaceHover}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource LineStrong}"/>
+      <Setter Property="Foreground" Value="{StaticResource Text}"/>
+    </Style>
+    <Style Selector="Button.accent">
+      <Setter Property="Background" Value="{StaticResource Accent}"/>
+      <Setter Property="Foreground" Value="{StaticResource AccentText}"/>
+      <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="Button.accent:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource AccentHover}"/>
+      <Setter Property="Foreground" Value="{StaticResource AccentText}"/>
+    </Style>
+    <Style Selector="Button.play">
+      <Setter Property="Height" Value="52"/>
+      <Setter Property="Padding" Value="34,0"/>
+      <Setter Property="CornerRadius" Value="26"/>
+      <Setter Property="Background" Value="{StaticResource Gold}"/>
+      <Setter Property="Foreground" Value="{StaticResource GoldText}"/>
+      <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="Button.play:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource GoldHover}"/>
+      <Setter Property="Foreground" Value="{StaticResource GoldText}"/>
+    </Style>
+    <Style Selector="Button.link, ToggleButton.link">
+      <Setter Property="Height" Value="NaN"/>
+      <Setter Property="Padding" Value="4,2"/>
+      <Setter Property="FontWeight" Value="Normal"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="Foreground" Value="{StaticResource TextDim}"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.link:pointerover /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.link:checked /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{StaticResource Text}"/>
+    </Style>
+
+    <!-- the tabs of the settings page: text only, the selected one (class "on") on a soft orange -->
+    <Style Selector="Button.nav">
+      <Setter Property="Height" Value="34"/>
+      <Setter Property="Padding" Value="14,0"/>
+      <Setter Property="FontWeight" Value="Medium"/>
+      <Setter Property="Foreground" Value="{StaticResource TextDim}"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    </Style>
+    <Style Selector="Button.nav.on">
+      <Setter Property="Background" Value="{StaticResource AccentSoft}"/>
+      <Setter Property="Foreground" Value="{StaticResource Text}"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+    <Style Selector="Button.nav.on:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource AccentSoft}"/>
+    </Style>
+
+    <Style Selector="TextBox.path">
+      <Setter Property="FontFamily" Value="{StaticResource Mono}"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="MinHeight" Value="38"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="ProgressBar">
+      <Setter Property="Foreground" Value="{StaticResource Accent}"/>
+      <Setter Property="Background" Value="{StaticResource Line}"/>
+      <Setter Property="MinHeight" Value="4"/>
+      <Setter Property="Maximum" Value="1"/>
+      <Setter Property="CornerRadius" Value="3"/>
+    </Style>
+  </Application.Styles>
+</Application>

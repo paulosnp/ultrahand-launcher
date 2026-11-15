@@ -12,16 +12,16 @@ static class LauncherUpdate
 {
     public const string Repo = "paulosnp/ultrahand-launcher";
     const string TagPrefix = "launcher-v";
-    const string AssetName = "UltrahandLauncher.exe";
+    static string AssetName => Platform.ReleaseAsset;
 
     public sealed record Update(string Version, string Url, long Size, string? Sha256);
 
     /// This build's version: the csproj Version, which the release workflow sets from the tag
     public static string Current => typeof(LauncherUpdate).Assembly.GetName().Version?.ToString(3) ?? "0.0.0";
 
-    /// Only the published .exe running from App.InstallDir replaces itself; a bin\ build or a copy anywhere else does not
+    /// Only the published .exe running from Platform.InstallDir replaces itself; a bin\ build or a copy anywhere else does not
     public static bool CanApply =>
-        Environment.ProcessPath is { } exe && string.Equals(Path.GetFullPath(exe), App.InstalledExe, StringComparison.OrdinalIgnoreCase);
+        Environment.ProcessPath is { } exe && string.Equals(Path.GetFullPath(exe), Platform.InstalledExe, Platform.PathCompare);
 
     /// The newest launcher release when it is newer than this build, else null (also when GitHub cannot be reached)
     public static async Task<Update?> Check(CancellationToken token = default)
@@ -74,10 +74,11 @@ static class LauncherUpdate
     /// the next start deletes it.
     public static async Task Apply(Update update, Action<double> progress, CancellationToken token)
     {
-        var exe = App.InstalledExe;
+        var exe = Platform.InstalledExe;
         var fresh = exe + ".new";
         await Releases.Download(update.Url, update.Size, fresh, progress, _ => { }, token);
         Verify(fresh, update);
+        Platform.MakeExecutable(fresh);
         var old = exe + ".old";
         if (File.Exists(old)) File.Delete(old);
         File.Move(exe, old);
@@ -90,7 +91,7 @@ static class LauncherUpdate
             File.Move(old, exe);   // (put the running version back so the launcher still opens)
             throw;
         }
-        var start = new ProcessStartInfo(exe) { UseShellExecute = false, WorkingDirectory = App.InstallDir };
+        var start = new ProcessStartInfo(exe) { UseShellExecute = false, WorkingDirectory = Platform.InstallDir };
         foreach (var a in Environment.GetCommandLineArgs().Skip(1)) start.ArgumentList.Add(a);
         Process.Start(start);
     }
@@ -102,7 +103,7 @@ static class LauncherUpdate
             throw new InvalidDataException($"the download has {file.Length} bytes, the release lists {update.Size}");
         Span<byte> head = stackalloc byte[2];
         file.ReadExactly(head);
-        if (head[0] != (byte)'M' || head[1] != (byte)'Z') throw new InvalidDataException("the download is not a Windows program");
+        if (Platform.Linux ? head[0] != 0x7F || head[1] != (byte)'E' : head[0] != (byte)'M' || head[1] != (byte)'Z') throw new InvalidDataException("the download is not a program for this system");
         if (update.Sha256 == null) return;
         file.Position = 0;
         if (!Convert.ToHexString(SHA256.HashData(file)).Equals(update.Sha256, StringComparison.OrdinalIgnoreCase))
@@ -115,7 +116,7 @@ static class LauncherUpdate
         if (!CanApply) return;
         Task.Run(async () =>
         {
-            foreach (var leftover in new[] { App.InstalledExe + ".old", App.InstalledExe + ".new" })
+            foreach (var leftover in new[] { Platform.InstalledExe + ".old", Platform.InstalledExe + ".new" })
                 for (var attempt = 0; attempt < 10 && File.Exists(leftover); attempt++)
                 {
                     try { File.Delete(leftover); }

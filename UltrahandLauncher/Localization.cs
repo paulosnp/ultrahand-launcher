@@ -1,13 +1,11 @@
 using System.Globalization;
-using System.Windows;
-using System.Windows.Controls;
 
 namespace Ultrahand;
 
 /// The launcher's language: English, Português (Brasil) or Español. The English text is the key: Tr.T looks it up in
 /// Translations.Table and gives it back unchanged when there is no entry, so a missing translation shows English. The language is
 /// picked once at start (Settings.UiLang, else the Windows display language); a change in the settings applies at the next start.
-static class Tr
+static partial class Tr
 {
     public static readonly (string Code, string Name)[] Languages = { ("en", "English"), ("pt-BR", "Português (Brasil)"), ("es", "Español") };
 
@@ -36,21 +34,4 @@ static class Tr
 
     public static string F(string english, params object[] args) => string.Format(CultureInfo.InvariantCulture, T(english), args);
 
-    /// Translates the texts the window's XAML sets: TextBlock.Text, the string Content of buttons and boxes, and string tooltips
-    public static void Apply(DependencyObject root)
-    {
-        if (Code == "en") return;
-        switch (root)
-        {
-            case TextBlock { Text.Length: > 0 } text:
-                text.Text = T(text.Text);
-                break;
-            case ContentControl { Content: string content }:
-                ((ContentControl)root).Content = T(content);
-                break;
-        }
-        if (root is FrameworkElement { ToolTip: string tip } element) element.ToolTip = T(tip);
-        foreach (var child in LogicalTreeHelper.GetChildren(root))
-            if (child is DependencyObject d) Apply(d);
-    }
 }

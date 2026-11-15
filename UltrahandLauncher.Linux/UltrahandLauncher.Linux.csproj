@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Ultrahand Launcher for Linux: an Avalonia window over the same code as the Windows launcher (the linked files below) -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>UltrahandLauncher</AssemblyName>
+    <RootNamespace>Ultrahand</RootNamespace>
+    <Product>Ultrahand Launcher</Product>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <!-- dotnet publish -c Release: one self-contained file for Linux x64, no .NET install needed -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.23" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.23" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.23" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.23" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- the code both launchers share -->
+    <Compile Include="..\UltrahandLauncher\Platform.cs" Link="Shared\Platform.cs" />
+    <Compile Include="..\UltrahandLauncher\Settings.cs" Link="Shared\Settings.cs" />
+    <Compile Include="..\UltrahandLauncher\Packages.cs" Link="Shared\Packages.cs" />
+    <Compile Include="..\UltrahandLauncher\Releases.cs" Link="Shared\Releases.cs" />
+    <Compile Include="..\UltrahandLauncher\Versions.cs" Link="Shared\Versions.cs" />
+    <Compile Include="..\UltrahandLauncher\Installer.cs" Link="Shared\Installer.cs" />
+    <Compile Include="..\UltrahandLauncher\LauncherUpdate.cs" Link="Shared\LauncherUpdate.cs" />
+    <Compile Include="..\UltrahandLauncher\Localization.cs" Link="Shared\Localization.cs" />
+    <Compile Include="..\UltrahandLauncher\Translations.cs" Link="Shared\Translations.cs" />
+    <Compile Include="..\UltrahandLauncher\GameSettings.cs" Link="Shared\GameSettings.cs" />
+    <Compile Include="..\UltrahandLauncher\SaveBackup.cs" Link="Shared\SaveBackup.cs" />
+    <Compile Include="..\UltrahandLauncher\ReleaseNotes.cs" Link="Shared\ReleaseNotes.cs" />
+    <Compile Include="..\UltrahandLauncher\SteamImport.cs" Link="Shared\SteamImport.cs" />
+    <AvaloniaResource Include="..\UltrahandLauncher\Images\ultrahand.png" Link="Images\ultrahand.png" />
+    <!-- the release notes the first start after an update shows (ReleaseNotes.cs) -->
+    <EmbeddedResource Include="..\CHANGELOG.md" LogicalName="CHANGELOG.md" />
+  </ItemGroup>
+
+</Project>

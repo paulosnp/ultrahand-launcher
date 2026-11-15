@@ -1,7 +1,14 @@
 # Ultrahand Launcher
 
-A Windows launcher and installer for [TotK Recomp](https://github.com/valentderah/totk-pc-recomp), in a single `UltrahandLauncher.exe`.
+A launcher and installer for [TotK Recomp](https://github.com/valentderah/totk-pc-recomp) on Windows and Linux, in a single file:
+`UltrahandLauncher.exe` or `UltrahandLauncher-linux-x64`.
 Download it, open it, pick your game files: it installs the game, keeps it up to date and keeps itself up to date.
+
+On Linux, make the file executable first (`chmod +x UltrahandLauncher-linux-x64`). What follows describes Windows; on Linux the
+launcher lives in `~/.local/share/ultrahand-launcher` (the program in `bin`, the settings in `launcher.json`, the downloaded setup
+packages in `setups`), its shortcuts are `.desktop` files in the applications menu and on the Desktop, the game's setup package is
+TotK Recomp's AppImage, and the game is `totk` instead of `totk.exe`. The code is `UltrahandLauncher` (Windows, WPF) and
+`UltrahandLauncher.Linux` (Avalonia), which compiles the files both share from the first.
 
 - **Installs itself.** Opened from anywhere (Downloads, for example), it copies itself to
   `%LOCALAPPDATA%\Programs\Ultrahand Launcher\UltrahandLauncher.exe` and restarts from there, without admin rights.

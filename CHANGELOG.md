@@ -2,6 +2,14 @@
 
 Each release's notes on GitHub come from its section here (`## X.Y.Z`), so add a section before tagging `launcher-vX.Y.Z`.
 
+## 0.1.8
+
+- **Linux version**: `UltrahandLauncher-linux-x64`, one file for Linux x64 with everything the Windows launcher has. It installs
+  itself to `~/.local/share/ultrahand-launcher`, adds itself to the applications menu and the Desktop, installs the game from the
+  TotK Recomp AppImage (unpacked into the downloads folder), updates the game and itself, and has the settings, save backups,
+  crash page and Steam import. Make it executable (`chmod +x UltrahandLauncher-linux-x64`) and open it. The requirements are
+  TotK Recomp's: Linux 6.7 or later and glibc 2.34 (Ubuntu 22.04, Debian 12, Fedora 35, SteamOS 3).
+
 ## 0.1.7
 
 - **Downloads folder** ([#2](https://github.com/paulosnp/ultrahand-launcher/issues/2)): the TotK Recomp setup package (about

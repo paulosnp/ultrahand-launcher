@@ -42,7 +42,7 @@ function Groups([string]$code) {
 $found = New-Object System.Collections.Generic.HashSet[string]
 
 # 1. Tr.T( / Tr.F( calls: the literal groups inside, except switch patterns ("x" =>) and, for Tr.F, all but the first
-foreach ($file in Get-ChildItem $src -Filter *.cs) {
+foreach ($file in @(Get-ChildItem $src -Filter *.cs) + @(Get-ChildItem "$src.Linux" -Filter *.cs)) {
   $code = [IO.File]::ReadAllText($file.FullName)
   $groups = Groups $code
   foreach ($call in [regex]::Matches($code, 'Tr\.(T|F)\(')) {
@@ -63,7 +63,7 @@ foreach ($file in Get-ChildItem $src -Filter *.cs) {
 }
 
 # 2. Static XAML texts
-foreach ($file in Get-ChildItem $src -Filter *.xaml) {
+foreach ($file in @(Get-ChildItem $src -Filter *.xaml) + @(Get-ChildItem "$src.Linux" -Filter *.axaml)) {
   foreach ($m in [regex]::Matches([IO.File]::ReadAllText($file.FullName), '\b(Text|Content|ToolTip)="([^"{][^"]*)"')) {
     [void]$found.Add([System.Net.WebUtility]::HtmlDecode($m.Groups[2].Value))
   }

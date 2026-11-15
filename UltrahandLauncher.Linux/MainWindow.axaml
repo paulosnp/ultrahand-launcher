@@ -1,0 +1,325 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Ultrahand.MainWindow"
+        Title="Ultrahand Launcher" Width="960" Height="620" CanResize="False"
+        WindowStartupLocation="CenterScreen" Icon="avares://UltrahandLauncher/Images/ultrahand.png"
+        Background="{StaticResource Bg}" Foreground="{StaticResource Text}" FontSize="14">
+
+  <!-- The pages of UltrahandLauncher/MainWindow.xaml with the same element names, so the code of the two windows stays close.
+       The window keeps the system's own title bar. -->
+  <Grid>
+
+    <!-- ===================== splash ===================== -->
+    <StackPanel x:Name="Splash" HorizontalAlignment="Center" VerticalAlignment="Center">
+      <Image Source="avares://UltrahandLauncher/Images/ultrahand.png" Width="96" RenderOptions.BitmapInterpolationMode="HighQuality"/>
+      <TextBlock Text="Ultrahand Launcher" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,22,0,0"/>
+      <TextBlock x:Name="SplashText" Text="Starting…" FontSize="13" Foreground="{StaticResource TextDim}" HorizontalAlignment="Center"
+                 Margin="0,6,0,0" MinHeight="18"/>
+      <ProgressBar IsIndeterminate="True" Width="160" Height="4" Margin="0,18,0,0"/>
+    </StackPanel>
+
+    <!-- ===================== the installer / launcher ===================== -->
+    <Grid x:Name="Main" IsVisible="False" RowDefinitions="56,*">
+
+      <!-- top bar: icon and name, then the stepper (or the version tag of an update, verify or rebuild), then the launcher update -->
+      <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="22,0,22,0">
+        <Button x:Name="SettingsButton" Grid.Column="3" Classes="link" Margin="10,0,0,0" VerticalAlignment="Center" Content="Settings"
+                Click="OpenSettings"/>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+          <Image Source="avares://UltrahandLauncher/Images/ultrahand.png" Width="24" RenderOptions.BitmapInterpolationMode="HighQuality"/>
+          <TextBlock Text="Ultrahand" FontWeight="SemiBold" Margin="10,0,0,0" VerticalAlignment="Center"/>
+          <TextBlock x:Name="LauncherVersionText" FontSize="12" Foreground="{StaticResource TextMuted}" Margin="8,1,0,0" VerticalAlignment="Center"/>
+          <Border x:Name="VersionTag" Margin="14,0,0,0" Padding="9,3" CornerRadius="4" Background="{StaticResource AccentSoft}"
+                  VerticalAlignment="Center" IsVisible="False">
+            <TextBlock x:Name="VersionTagText" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource AccentLight}"/>
+          </Border>
+        </StackPanel>
+        <StackPanel x:Name="Stepper" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="12,0"/>
+        <Button x:Name="LauncherUpdateButton" Grid.Column="2" Classes="accent" Height="30" Padding="14,0" FontSize="12"
+                VerticalAlignment="Center" IsVisible="False" Click="LauncherUpdateClick"/>
+      </Grid>
+
+      <Grid Grid.Row="1" Margin="56,12,56,30">
+
+        <!-- ===== 1: game files ===== -->
+        <Grid x:Name="FilesPage" RowDefinitions="*,Auto" IsVisible="False">
+          <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,0,0,12">
+            <StackPanel Margin="0,0,14,0">
+              <TextBlock x:Name="FilesTitle" Classes="h1" Text="Install your game"/>
+              <TextBlock x:Name="FilesSub" Classes="lead"
+                         Text="Pick your game files and where the game should go. The installer builds the game on your PC, once."/>
+
+              <TextBlock Classes="caps" Text="GAME FILES"/>
+              <Border Classes="panel" Padding="16,6">
+                <Grid ColumnDefinitions="180,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
+                  <StackPanel Grid.Row="0" VerticalAlignment="Center">
+                    <TextBlock Text="Base game" FontWeight="SemiBold"/>
+                    <TextBlock Classes="tiny" Text="NSP, XCI, NSZ or XCZ"/>
+                  </StackPanel>
+                  <TextBox x:Name="BasePath" Grid.Row="0" Grid.Column="1" Classes="path" Margin="0,6" TextChanged="PathsChanged"/>
+                  <Button Grid.Row="0" Grid.Column="2" Margin="10,0,0,0" Content="Browse" Tag="base" Click="BrowseFile"/>
+
+                  <StackPanel Grid.Row="1" VerticalAlignment="Center">
+                    <TextBlock Text="Game update" FontWeight="SemiBold"/>
+                    <TextBlock Classes="tiny" Text="1.1.0, 1.2.1 or 1.4.3 (NSP or NSZ)"/>
+                  </StackPanel>
+                  <TextBox x:Name="UpdatePath" Grid.Row="1" Grid.Column="1" Classes="path" Margin="0,6" TextChanged="PathsChanged"/>
+                  <Button Grid.Row="1" Grid.Column="2" Margin="10,0,0,0" Content="Browse" Tag="update" Click="BrowseFile"/>
+
+                  <StackPanel Grid.Row="2" VerticalAlignment="Center">
+                    <TextBlock Text="prod.keys" FontWeight="SemiBold"/>
+                    <TextBlock Classes="tiny" Text="read in place, never copied"/>
+                  </StackPanel>
+                  <TextBox x:Name="KeysPath" Grid.Row="2" Grid.Column="1" Classes="path" Margin="0,6" TextChanged="PathsChanged"/>
+                  <Button Grid.Row="2" Grid.Column="2" Margin="10,0,0,0" Content="Browse" Tag="keys" Click="BrowseFile"/>
+
+                  <StackPanel Grid.Row="3" VerticalAlignment="Center">
+                    <TextBlock Text="Firmware (optional)" FontWeight="SemiBold"/>
+                    <TextBlock Classes="tiny" Text="only for Chinese and Korean"/>
+                  </StackPanel>
+                  <TextBox x:Name="FirmwarePath" Grid.Row="3" Grid.Column="1" Classes="path" Margin="0,6" TextChanged="PathsChanged"/>
+                  <Button Grid.Row="3" Grid.Column="2" Margin="10,0,0,0" Content="Browse" Click="BrowseFirmware"/>
+                </Grid>
+              </Border>
+              <TextBlock Classes="tiny" Margin="0,8,0,0" TextWrapping="Wrap"
+                         Text="You can also drop the files on this window. NSZ and XCZ work as they are: the installer decompresses them."/>
+
+              <Grid ColumnDefinitions="*,20,230">
+                <StackPanel>
+                  <TextBlock Classes="caps" Text="INSTALL THE GAME TO"/>
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBox x:Name="OutPath" Classes="path" TextChanged="PathsChanged"/>
+                    <Button Grid.Column="1" Margin="10,0,0,0" Content="Change" Click="BrowseOut"/>
+                  </Grid>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                  <TextBlock Classes="caps" Text="GAME LANGUAGE"/>
+                  <ComboBox x:Name="LanguageBox" HorizontalAlignment="Stretch" MinHeight="38" SelectionChanged="LanguageChanged"/>
+                </StackPanel>
+              </Grid>
+
+              <!-- the setup package: the one on this PC, or the one the install downloads from the GitHub releases -->
+              <Border Margin="0,16,0,0" Padding="12,10" CornerRadius="6" Background="{StaticResource AccentSoft}">
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock x:Name="PackageNote" Classes="muted" FontSize="12" VerticalAlignment="Center"/>
+                  <Button x:Name="DownloadsButton" Grid.Column="1" Height="30" Padding="12,0" FontSize="12" Margin="12,0,0,0"
+                          VerticalAlignment="Center" Content="Change folder" Click="ChangeDownloadsClick"/>
+                </Grid>
+              </Border>
+
+              <StackPanel x:Name="DlssPanel" Margin="0,16,0,0">
+                <CheckBox x:Name="DlssTick" IsChecked="True" Click="DlssChanged"
+                          Content="Download NVIDIA DLSS (nvngx_dlss.dll) for NVIDIA RTX cards"/>
+                <TextBlock Classes="tiny" Margin="28,0,0,0" TextWrapping="Wrap"
+                           Text="From NVIDIA's DLSS SDK on GitHub, under the NVIDIA RTX SDK license. Without it the dlaa and DLSS options of the menu (F1) do nothing."/>
+              </StackPanel>
+
+              <TextBlock x:Name="FormError" Classes="muted" Foreground="{StaticResource Bad}" Margin="0,12,0,0" IsVisible="False"/>
+            </StackPanel>
+          </ScrollViewer>
+
+          <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto,Auto">
+            <ProgressBar x:Name="SpaceBar" Width="140" Height="4" VerticalAlignment="Center"/>
+            <TextBlock x:Name="SpaceText" Grid.Column="1" Classes="muted" FontSize="12" Margin="10,0,0,0" VerticalAlignment="Center"/>
+            <Button x:Name="BackToLauncher" Grid.Column="2" Classes="link" Content="Back to the launcher" Margin="0,0,14,0"
+                    VerticalAlignment="Center" IsVisible="False" Click="BackToLauncherClick"/>
+            <Button x:Name="BuildButton" Grid.Column="3" Classes="accent" Content="Install the game" Click="StartInstall"/>
+          </Grid>
+        </Grid>
+
+        <!-- ===== 2: install (and update, verify, rebuild) ===== -->
+        <Grid x:Name="BuildPage" RowDefinitions="Auto,*,Auto" IsVisible="False">
+          <StackPanel>
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel>
+                <TextBlock x:Name="BuildTitle" Classes="h1" Text="Installing your game"/>
+                <TextBlock x:Name="BuildNote" Classes="lead" Margin="0,6,0,0"/>
+              </StackPanel>
+              <TextBlock x:Name="PercentText" Grid.Column="1" Text="0%" FontSize="34" FontWeight="SemiBold" Foreground="{StaticResource AccentLight}"
+                         VerticalAlignment="Bottom"/>
+            </Grid>
+            <ProgressBar x:Name="OverallBar" Height="6" Margin="0,16,0,0"/>
+            <TextBlock x:Name="WarnText" Classes="muted" FontSize="12" Foreground="{StaticResource Warn}" Margin="0,10,0,0" IsVisible="False"/>
+          </StackPanel>
+
+          <Grid Grid.Row="1" Margin="0,16,0,14">
+            <Border x:Name="StepCard" Classes="panel" Padding="16,2" VerticalAlignment="Top">
+              <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="290">
+                <StackPanel x:Name="StageList" Margin="0,0,10,0"/>
+              </ScrollViewer>
+            </Border>
+            <TextBox x:Name="Log" IsVisible="False" IsReadOnly="True" FontFamily="{StaticResource Mono}" FontSize="11" Padding="10"
+                     Foreground="{StaticResource TextDim}" TextWrapping="NoWrap" AcceptsReturn="True"
+                     ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+          </Grid>
+
+          <Grid Grid.Row="2" ColumnDefinitions="*,Auto">
+            <ToggleButton x:Name="ShowLog" Classes="link" VerticalAlignment="Center" Content="Show details" IsCheckedChanged="LogToggled"/>
+            <Button x:Name="CancelButton" Grid.Column="1" Content="Cancel" Click="CancelRun"/>
+          </Grid>
+        </Grid>
+
+        <!-- ===== 3: ready ===== -->
+        <StackPanel x:Name="ReadyPage" IsVisible="False" HorizontalAlignment="Center" VerticalAlignment="Center">
+          <Grid Width="72" Height="72" HorizontalAlignment="Center">
+            <Ellipse Fill="{StaticResource OkSoft}" Stroke="{StaticResource Ok}" StrokeThickness="2"/>
+            <Path Data="M0,11 L9,20 L26,2" Stroke="{StaticResource Ok}" StrokeThickness="3.5" StrokeLineCap="Round" StrokeJoin="Round"
+                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          </Grid>
+          <TextBlock x:Name="ReadyTitle" Classes="h1" Text="Your game is ready" HorizontalAlignment="Center" Margin="0,22,0,0"/>
+          <TextBlock x:Name="ReadyNote" Classes="lead" HorizontalAlignment="Center" TextAlignment="Center" MaxWidth="760"/>
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,28,0,0">
+            <Button Classes="play" Click="Play">
+              <StackPanel Orientation="Horizontal">
+                <Path Data="M0,0 L11,7 L0,14 Z" Fill="{StaticResource GoldText}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock Text="Play" FontSize="16" FontWeight="Bold" Foreground="{StaticResource GoldText}"/>
+              </StackPanel>
+            </Button>
+            <Button Height="52" Margin="12,0,0,0" Padding="22,0" Content="Open folder" Click="OpenFolder"/>
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,24,0,0">
+            <CheckBox x:Name="DesktopTick" Content="Desktop shortcut" IsChecked="True" Click="ShortcutsChanged"/>
+            <CheckBox x:Name="StartTick" Content="Start menu shortcut" IsChecked="True" Margin="20,0,0,0" Click="ShortcutsChanged"/>
+          </StackPanel>
+          <TextBlock Classes="tiny" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,16,0,0" MaxWidth="620" TextWrapping="Wrap"
+                     Text="The shortcuts open this launcher: it looks for updates in the GitHub releases before it starts the game."/>
+        </StackPanel>
+
+        <!-- ===== launcher: opened by the shortcuts with the launch option and the game folder ===== -->
+        <StackPanel x:Name="LaunchPage" IsVisible="False" HorizontalAlignment="Center" VerticalAlignment="Center">
+          <TextBlock Classes="caps" Text="THE LEGEND OF ZELDA" HorizontalAlignment="Center" Margin="0"/>
+          <TextBlock Classes="h1" Text="Tears of the Kingdom" HorizontalAlignment="Center" FontSize="36" Margin="0,4,0,0"/>
+          <TextBlock x:Name="LaunchVersion" Classes="lead" HorizontalAlignment="Center" TextAlignment="Center" MaxWidth="760"
+                     TextTrimming="CharacterEllipsis"/>
+          <TextBlock x:Name="LaunchStatus" Classes="muted" Text="Looking for updates…" HorizontalAlignment="Center" TextAlignment="Center"
+                     Margin="0,16,0,0" MaxWidth="700"/>
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,28,0,0">
+            <Button x:Name="LaunchUpdate" Classes="accent" Height="52" Padding="28,0" Margin="0,0,12,0" Content="Update"
+                    IsVisible="False" Click="LaunchUpdateClick"/>
+            <Button x:Name="LaunchPlay" Classes="play" Click="LaunchPlayClick">
+              <StackPanel Orientation="Horizontal">
+                <Path Data="M0,0 L11,7 L0,14 Z" Fill="{StaticResource GoldText}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock Text="Play" FontSize="16" FontWeight="Bold" Foreground="{StaticResource GoldText}"/>
+              </StackPanel>
+            </Button>
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,24,0,0">
+            <Button Classes="link" Content="Open the game folder" Click="LaunchFolderClick"/>
+            <TextBlock Classes="tiny" FontSize="13" Text="   |   " VerticalAlignment="Center"/>
+            <Button Classes="link" Content="Verify files" Click="LaunchVerifyClick"
+                    ToolTip.Tip="Checks the hashes of everything the install recorded and redoes what is wrong"/>
+            <TextBlock Classes="tiny" FontSize="13" Text="   |   " VerticalAlignment="Center"/>
+            <Button Classes="link" Content="Install to another folder" Click="LaunchOtherClick"/>
+          </StackPanel>
+        </StackPanel>
+
+        <!-- ===== settings: Game (the totk.ini settings of the game's own menu, GameSettings.cs) and Launcher ===== -->
+        <Grid x:Name="SettingsPage" RowDefinitions="Auto,*" IsVisible="False">
+          <Grid ColumnDefinitions="*,Auto,Auto">
+            <StackPanel>
+              <TextBlock Classes="h1" Text="Settings"/>
+              <TextBlock x:Name="SettingsNote" Classes="muted" Margin="0,6,0,0"/>
+            </StackPanel>
+            <Border Grid.Column="1" CornerRadius="7" Padding="3" Background="{StaticResource Surface}" BorderBrush="{StaticResource Line}"
+                    BorderThickness="1" VerticalAlignment="Top" Margin="16,0,12,0">
+              <StackPanel Orientation="Horizontal">
+                <Button x:Name="GameSection" Classes="nav" Content="Game" Click="SectionChanged"/>
+                <Button x:Name="LauncherSection" Classes="nav" Content="Launcher" Click="SectionChanged"/>
+              </StackPanel>
+            </Border>
+            <Button Grid.Column="2" Classes="accent" Content="Done" VerticalAlignment="Top" Click="SettingsDone"/>
+          </Grid>
+          <Grid Grid.Row="1" Margin="0,16,0,0" ColumnDefinitions="150,*">
+            <StackPanel x:Name="SettingsTabs" Margin="0,0,10,0"/>
+            <Border Grid.Column="1" Classes="panel" Padding="18,2,4,2">
+              <ScrollViewer x:Name="SettingsScroll" VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="SettingsRows" Margin="0,0,18,0"/>
+              </ScrollViewer>
+            </Border>
+          </Grid>
+        </Grid>
+
+        <!-- ===== the game stopped with an error: the end of its log (logs/totk.log) ===== -->
+        <Grid x:Name="CrashPage" RowDefinitions="Auto,*,Auto" IsVisible="False">
+          <StackPanel>
+            <TextBlock x:Name="CrashTitle" Classes="h1" Text="The game stopped"/>
+            <TextBlock x:Name="CrashSub" Classes="lead"/>
+          </StackPanel>
+          <Border Grid.Row="1" Classes="panel" Margin="0,18,0,14" ClipToBounds="True">
+            <Grid ColumnDefinitions="4,*" RowDefinitions="Auto,*">
+              <Rectangle Grid.RowSpan="2" Fill="{StaticResource Bad}"/>
+              <TextBlock x:Name="CrashSummary" Grid.Column="1" FontWeight="SemiBold" Foreground="{StaticResource Bad}"
+                         TextWrapping="Wrap" Margin="18,14,18,8"/>
+              <TextBox x:Name="CrashLog" Grid.Row="1" Grid.Column="1" IsReadOnly="True" BorderThickness="0" Background="Transparent"
+                       Foreground="{StaticResource TextDim}" FontFamily="{StaticResource Mono}" FontSize="11" Padding="14,0,6,8"
+                       TextWrapping="NoWrap" AcceptsReturn="True"
+                       ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+            </Grid>
+          </Border>
+          <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+              <Button x:Name="CrashCopy" Classes="link" Content="Copy for a bug report" Click="CrashCopyClick"/>
+              <TextBlock Classes="tiny" FontSize="13" Text="   |   " VerticalAlignment="Center"/>
+              <Button Classes="link" Content="Open the logs folder" Click="CrashLogsClick"/>
+            </StackPanel>
+            <Button Grid.Column="1" Content="Back" Click="CrashBackClick"/>
+            <Button Grid.Column="2" Classes="accent" Content="Play again" Margin="10,0,0,0" Click="CrashPlayClick"/>
+          </Grid>
+        </Grid>
+
+        <!-- ===== when something goes wrong with an install, update, verify or rebuild ===== -->
+        <Grid x:Name="ProblemPage" RowDefinitions="Auto,*,Auto" IsVisible="False">
+          <StackPanel>
+            <TextBlock x:Name="ProblemTitle" Classes="h1" Text="The install stopped"/>
+            <TextBlock x:Name="ProblemSub" Classes="lead" Text="Finished steps are kept: trying again continues where it stopped."/>
+          </StackPanel>
+          <Border Grid.Row="1" Classes="panel" Margin="0,20,0,14" VerticalAlignment="Top" ClipToBounds="True">
+            <Grid ColumnDefinitions="4,*">
+              <Rectangle Fill="{StaticResource Bad}"/>
+              <StackPanel Grid.Column="1" Margin="20,18,20,18">
+                <TextBlock x:Name="ProblemHead" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource Bad}" TextWrapping="Wrap" Text="What went wrong"/>
+                <ScrollViewer MaxHeight="230" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,10,0,0">
+                  <StackPanel>
+                    <TextBlock x:Name="ProblemText" Classes="muted" FontSize="14"/>
+                    <StackPanel x:Name="ProblemSteps" Margin="0,8,0,0"/>
+                  </StackPanel>
+                </ScrollViewer>
+              </StackPanel>
+            </Grid>
+          </Border>
+          <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto,Auto">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+              <Button x:Name="ProblemDetails" Classes="link" Content="Show details" Click="ProblemShowDetails"/>
+              <TextBlock Classes="tiny" FontSize="13" Text="   |   " VerticalAlignment="Center"/>
+              <Button x:Name="CopyReport" Classes="link" Content="Copy for a bug report" Click="CopyForReport"/>
+            </StackPanel>
+            <Button x:Name="PlayAnyway" Grid.Column="1" Content="Play anyway" Margin="0,0,10,0" IsVisible="False" Click="PlayAnywayClick"/>
+            <Button Grid.Column="2" Content="Back" Margin="0,0,10,0" Click="Back"/>
+            <Button x:Name="RetryButton" Grid.Column="3" Classes="accent" Content="Try again" Click="Retry"/>
+          </Grid>
+        </Grid>
+      </Grid>
+    </Grid>
+
+    <!-- ===================== what's new, after a launcher update ===================== -->
+    <Grid x:Name="NotesOverlay" IsVisible="False" Background="#B3000000">
+      <Border Width="580" MaxHeight="460" Background="#221B17" BorderBrush="{StaticResource LineStrong}" BorderThickness="1"
+              CornerRadius="10" Padding="26,22" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Grid RowDefinitions="Auto,*,Auto">
+          <StackPanel>
+            <TextBlock x:Name="NotesTitle" Classes="h1" FontSize="21" TextWrapping="Wrap"/>
+            <TextBlock x:Name="NotesSub" Classes="muted" Margin="0,4,0,0"/>
+          </StackPanel>
+          <ScrollViewer Grid.Row="1" Margin="0,16,0,18" VerticalScrollBarVisibility="Auto">
+            <TextBlock x:Name="NotesText" Classes="muted" LineHeight="20" Margin="0,0,16,0"/>
+          </ScrollViewer>
+          <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto">
+            <CheckBox x:Name="NotesOff" VerticalAlignment="Center" Content="Don't show this after updates"/>
+            <Button Grid.Column="1" Margin="12,0,10,0" Content="Full release notes" Click="NotesFullClick"/>
+            <Button Grid.Column="2" Classes="accent" Content="OK" Click="NotesOkClick"/>
+          </Grid>
+        </Grid>
+      </Border>
+    </Grid>
+  </Grid>
+</Window>

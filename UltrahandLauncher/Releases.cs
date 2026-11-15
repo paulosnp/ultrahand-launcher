@@ -16,7 +16,8 @@ sealed record Release(string Tag, string AssetName, string Url, long Size)
 /// Finds the latest release of the repository and turns its setup package into a folder under SetupPackage.Store
 static class Releases
 {
-    static readonly Regex PackageName = new(@"^TotK-Setup-.+-windows\.zip$", RegexOptions.IgnoreCase);
+    // (Linux: the plain AppImage, not the -pgo one)
+    static readonly Regex PackageName = new(Platform.Linux ? @"^TotK-Setup-[^-]+-x86_64\.AppImage$" : @"^TotK-Setup-.+-windows\.zip$", RegexOptions.IgnoreCase);
     internal static readonly HttpClient Http = NewClient(followRedirects: true);
     static readonly HttpClient NoRedirect = NewClient(followRedirects: false);
 
@@ -88,7 +89,7 @@ static class Releases
     /// The package name tools/make_release.py gives a release: TotK-Setup-&lt;tag without the v&gt;-windows.zip
     static Release Conventional(string repo, string tag)
     {
-        var name = $"TotK-Setup-{tag.TrimStart('v', 'V')}-windows.zip";
+        var name = Platform.PackageAsset(tag.TrimStart('v', 'V'));
         return new Release(tag, name, $"https://github.com/{repo}/releases/download/{Uri.EscapeDataString(tag)}/{name}", 0);
     }
 
@@ -107,7 +108,7 @@ static class Releases
 
         note(Tr.T("Unpacking the setup package"));
         var staging = folder + ".part";
-        await Task.Run(() => Unpack(zip, staging, f => progress(0.85 + 0.15 * f), token), token);
+        await Task.Run(() => { if (Platform.Linux) UnpackAppImage(zip, staging, token); else Unpack(zip, staging, f => progress(0.85 + 0.15 * f), token); }, token);
         var root = PackageRoot(staging) ?? throw new InvalidDataException(
             $"{release.AssetName} has no setup package in it (python\\python.exe and installer\\). An antivirus may have removed files from it.");
         if (Directory.Exists(folder)) Directory.Delete(folder, true);
@@ -121,6 +122,29 @@ static class Releases
     /// The zip holds everything under one top folder (tools/make_release.py); a flat zip works too
     static string? PackageRoot(string dir) =>
         SetupPackage.IsPackage(dir) ? dir : Directory.GetDirectories(dir).FirstOrDefault(SetupPackage.IsPackage);
+
+    /// Linux: the package is an AppImage, which unpacks itself (--appimage-extract writes squashfs-root in the working folder).
+    /// The unpacked folder stays, so the installer's Python runs from it like from the Windows zip.
+    static void UnpackAppImage(string appImage, string into, CancellationToken token)
+    {
+        if (Directory.Exists(into)) Directory.Delete(into, true);
+        Directory.CreateDirectory(into);
+        Platform.MakeExecutable(appImage);
+        var start = new System.Diagnostics.ProcessStartInfo(appImage)
+        {
+            WorkingDirectory = into, UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true,
+            ArgumentList = { "--appimage-extract" },
+        };
+        using var p = System.Diagnostics.Process.Start(start)!;
+        p.OutputDataReceived += (_, _) => { };   // (one line per file: read and dropped so the pipe never fills)
+        p.BeginOutputReadLine();
+        var errors = p.StandardError.ReadToEndAsync(token);
+        using (token.Register(() => { try { p.Kill(true); } catch (Exception) { } }))
+            p.WaitForExit();
+        token.ThrowIfCancellationRequested();
+        if (p.ExitCode != 0)
+            throw new InvalidDataException($"{Path.GetFileName(appImage)} could not be unpacked (exit code {p.ExitCode}): {errors.Result.Trim()}");
+    }
 
     static void Unpack(string zip, string into, Action<double> progress, CancellationToken token)
     {

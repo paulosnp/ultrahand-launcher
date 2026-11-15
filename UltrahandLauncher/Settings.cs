@@ -32,7 +32,7 @@ sealed class Settings
     /// owner/repo the releases come from (TOTK_LAUNCHER_REPO takes precedence)
     public string? Repo { get; set; }
 
-    public static string Folder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TotK Recomp");
+    public static string Folder => Platform.DataFolder;
     static string FilePath => Path.Combine(Folder, "launcher.json");
     static string UpstreamRecent => Path.Combine(Folder, "setup.json");
 

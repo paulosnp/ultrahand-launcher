@@ -8,7 +8,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>UltrahandLauncher</AssemblyName>
     <RootNamespace>Ultrahand</RootNamespace>
-    <Version>0.1.7</Version>
     <Product>Ultrahand Launcher</Product>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Images\ultrahand.ico</ApplicationIcon>
